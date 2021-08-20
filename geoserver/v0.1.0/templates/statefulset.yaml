@@ -1,0 +1,245 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "geoserver.fullname" . }}
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "geoserver.fullname" . }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "geoserver.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "geoserver.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "geoserver.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          env:
+            - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: gs-memdumps
+              mountPath: /var/geoserver/memory_dumps
+            - name: logs
+              mountPath: /var/geoserver/logs
+              subPathExpr: $(POD_HOSTNAME)
+            - name: audits
+              mountPath: /var/geoserver/audits
+              subPathExpr: $(POD_HOSTNAME)
+            - name: tomcat-logs
+              mountPath: /usr/local/tomcat/logs
+              subPathExpr: $(POD_HOSTNAME)
+          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME)']
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            # - name: GEOSERVER_APP_NAME
+            #   value: geoserver-cluster
+            - name: GEOSERVER_LOG_LOCATION
+              value: /var/geoserver/logs/$(POD_HOSTNAME).log
+            - name: GEOSERVER_AUDIT_PATH
+              value: /var/geoserver/audits
+            - name: GEOSERVER_HEAP_DUMP_DIR
+              value: /var/geoserver/memory_dumps/$(POD_HOSTNAME)
+            - name: GEOSERVER_DATA_DIR
+              value: /var/geoserver/data_dir
+            - name: GEOWEBCACHE_CONFIG_DIR
+              value: $(GEOSERVER_DATA_DIR)/gwc
+            - name: GEOWEBCACHE_CACHE_DIR
+              value: /var/geoserver/gwc_cache_dir
+            - name: JAVA_OPTS
+              value: >
+                -Dpod.hostname=$(POD_HOSTNAME)
+                -server -XX:NewRatio=2 -XX:+UseParallelOldGC -XX:+UseParallelGC -Xms3072m -Xmx3072m -XX:MaxPermSize=256m
+                -XX:+HeapDumpOnOutOfMemoryError
+                -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof
+                -Duser.timezone=GMT -Dgt2.jdbc.trace=true
+                -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR)
+                -DGEOWEBCACHE_CONFIG_DIR=$(GEOWEBCACHE_CONFIG_DIR)
+                -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)
+                -DGEOSERVER_LOG_LOCATION=$(GEOSERVER_LOG_LOCATION)
+                -DGEOSERVER_AUDIT_PATH=$(GEOSERVER_AUDIT_PATH)
+                -DGEOSERVER_CSRF_DISABLED=true
+                -DALLOW_ENV_PARAMETRIZATION=true
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: ajp
+              containerPort: 8009
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /geoserver
+              port: http
+            failureThreshold: 36
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /geoserver
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /geoserver
+              port: http
+            successThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: gs-root
+              mountPath: /data
+            - name: gs-coverages
+              mountPath: /var/geoserver/coverages
+            - name: gs-datadir
+              mountPath: /var/geoserver/data_dir
+            - name: gs-memdumps
+              mountPath: /var/geoserver/memory_dumps
+            - name: masterpwd
+              mountPath: "/var/geoserver/data_dir/security/masterpw/default/passwd"
+              subPath: master_passwd
+              readOnly: true
+            - name: context
+              mountPath: /usr/local/tomcat/conf/context.xml
+              subPath: context.xml
+              readOnly: true
+            - name: logs
+              mountPath: /var/geoserver/logs
+              subPathExpr: $(POD_HOSTNAME)
+            - name: audits
+              mountPath: /var/geoserver/audits
+              subPathExpr: $(POD_HOSTNAME)
+            - name: tomcat-logs
+              mountPath: /usr/local/tomcat/logs
+              subPathExpr: $(POD_HOSTNAME)
+            - name: app-logs
+              mountPath: /app-logs
+            - name: server-xml
+              mountPath: /usr/local/tomcat/conf/server.xml
+              subPath: server.xml
+        {{- if .Values.postgis.enabled }}
+        - name: postgis
+          image: {{ .Values.postgis.image }}
+          imagePullPolicy: {{ .Values.postgis.pullPolicy }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgis.env.database }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgis.env.user }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "geoserver.fullname" . }}
+                  key: POSTGIS_PASSWORD
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: postgresql
+            failureThreshold: 12
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: postgresql
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: postgresql
+          resources:
+            {{- toYaml .Values.postgis.resources | nindent 12 }}
+          volumeMounts:
+            - name: postgis-persistent
+              mountPath: /var/lib/postgresql
+        {{- end }}
+      volumes:
+      - name: gs-root
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-root
+      - name: gs-coverages
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-coverages
+      - name: gs-datadir
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-datadir
+      - name: gs-memdumps
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-memdumps
+      - name: masterpwd
+        secret:
+          secretName: {{ include "geoserver.fullname" . }}
+          items:
+            - key: GEOSERVER_ADMIN_PASSWORD
+              path: master_passwd
+      - name: context
+        secret:
+          secretName: {{ include "geoserver.fullname" .}}-context
+      - name: app-logs
+        hostPath:
+          path: /app-logs
+          type: DirectoryOrCreate
+      - name: logs
+        hostPath:
+          path: /app-logs/geoserver/logs
+          type: DirectoryOrCreate
+      - name: audits
+        hostPath:
+          path: /app-logs/geoserver/audits
+          type: DirectoryOrCreate
+      - name: tomcat-logs
+        hostPath:
+          path: /app-logs/geoserver/tomcat-logs
+          type: DirectoryOrCreate
+      - name: server-xml
+        configMap:
+          name: geoserver
+          items:
+            - key: server.xml
+              path: server.xml
+      {{- if .Values.postgis.enabled }}
+      - name: postgis-persistent
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-postgis
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
