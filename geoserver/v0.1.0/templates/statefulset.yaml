@@ -38,17 +38,17 @@ spec:
                   fieldPath: metadata.name
           volumeMounts:
             - name: gs-memdumps
-              mountPath: /var/geoserver/memory_dumps
+              mountPath: /efs/memdumps
             - name: logs
-              mountPath: /var/geoserver/logs
+              mountPath: /app-logs/geoserver/logs
               subPathExpr: $(POD_HOSTNAME)
             - name: audits
-              mountPath: /var/geoserver/audits
+              mountPath: /app-logs/geoserver/audits
               subPathExpr: $(POD_HOSTNAME)
             - name: tomcat-logs
-              mountPath: /usr/local/tomcat/logs
+              mountPath: /app-logs/geoserver/tomcat-logs
               subPathExpr: $(POD_HOSTNAME)
-          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME)']
+          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME); chown -R 1000:1000 /efs /app-logs']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
