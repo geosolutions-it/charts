@@ -17,7 +17,7 @@
     <Resource
      name="jdbc/postgres" auth="Container" type="javax.sql.DataSource"
      driverClassName="org.postgresql.Driver"
-     url="jdbc:postgresql://localhost:5432/geoserver"
+     url="jdbc:postgresql://127.0.0.1:5432/geoserver"
      username="geoserver" password="geoserver"
      initialSize="0" maxActive="20" maxIdle="5" maxWait="2000" minIdle="0"
      timeBetweenEvictionRunsMillis="30000"
