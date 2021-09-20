@@ -75,19 +75,7 @@ spec:
             - name: GEOWEBCACHE_CACHE_DIR
               value: /var/geoserver/gwc_cache_dir
             - name: JAVA_OPTS
-              value: >
-                -Dpod.hostname=$(POD_HOSTNAME)
-                -server -XX:NewRatio=2 -XX:+UseParallelOldGC -XX:+UseParallelGC -Xms3072m -Xmx3072m -XX:MaxPermSize=256m
-                -XX:+HeapDumpOnOutOfMemoryError
-                -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof
-                -Duser.timezone=GMT -Dgt2.jdbc.trace=true
-                -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR)
-                -DGEOWEBCACHE_CONFIG_DIR=$(GEOWEBCACHE_CONFIG_DIR)
-                -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)
-                -DGEOSERVER_LOG_LOCATION=$(GEOSERVER_LOG_LOCATION)
-                -DGEOSERVER_AUDIT_PATH=$(GEOSERVER_AUDIT_PATH)
-                -DGEOSERVER_CSRF_DISABLED=true
-                -DALLOW_ENV_PARAMETRIZATION=true
+              value: "-Xms2G -Xmx4G -Djava.awt.headless=true -server -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Dorg.geotools.coverage.jaiext.enabled=true -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true -DGEOSERVER_LOG_LOCATION=/var/geoserver/logs/geoserver.log -DGEOWEBCACHE_CONFIG_DIR=/var/geoserver/datadir/gwc -DGEOWEBCACHE_CACHE_DIR=/var/geoserver/datadir/gwc_cache_dir -DNETCDF_DATA_DIR=/var/geoserver/netcdf_data_dir -DGRIB_CACHE_DIR=/var/geoserver/grib_cache_dir -DGEOSERVER_CSRF_DISABLED=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR) -DGEOSERVER_AUDIT_PATH=$(GEOSERVER_AUDIT_PATH) -Dpod.hostname=$(POD_HOSTNAME)"
           ports:
             - name: http
               containerPort: 8080
