@@ -1,39 +1,3 @@
-{{- if not .Values.persistence.root.existingClaim }}
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: {{ include "geoserver.fullname" . }}-root
-  labels:
-    {{- include "geoserver.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.root.accessModes }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.root.size | quote }}
-  {{- if .Values.persistence.root.storageClass }}
-  storageClassName: {{ .Values.persistence.root.storageClass }}
-  {{- end }}
-{{- end }}
----
-{{- if not .Values.persistence.coverages.existingClaim }}
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: {{ include "geoserver.fullname" . }}-coverages
-  labels:
-    {{- include "geoserver.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - {{ .Values.persistence.coverages.accessModes }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.coverages.size | quote }}
-  {{- if .Values.persistence.coverages.storageClass }}
-  storageClassName: {{ .Values.persistence.coverages.storageClass }}
-  {{- end }}
-{{- end }}
----
 {{- if not .Values.persistence.datadir.existingClaim }}
 kind: PersistentVolumeClaim
 apiVersion: v1

@@ -37,6 +37,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
           volumeMounts:
+            - name: gs-datadir
+              mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
               mountPath: /efs/memdumps
             - name: logs
@@ -48,7 +50,7 @@ spec:
             - name: tomcat-logs
               mountPath: /app-logs/geoserver/tomcat-logs
               subPathExpr: $(POD_HOSTNAME)
-          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME); mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME); chown -R 1000:1000 /efs /app-logs']
+          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME) && mkdir -p /var/geoserver/data_dir/gwc && mkdir -p /var/geoserver/data_dir/gwc_cache_dir && mkdir -p /var/geoserver/memory_dumps/$(POD_HOSTNAME) && chown -R 1000:1000 /app-logs && chown -R 1000:1000 /var/geoserver']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -67,13 +69,13 @@ spec:
             - name: GEOSERVER_AUDIT_PATH
               value: /var/geoserver/audits
             - name: GEOSERVER_HEAP_DUMP_DIR
-              value: /var/geoserver/memory_dumps/$(POD_HOSTNAME)
+              value: /var/geoserver/memory_dumps
             - name: GEOSERVER_DATA_DIR
-              value: /var/geoserver/data_dir
+              value: /var/geoserver/datadir
             - name: GEOWEBCACHE_CONFIG_DIR
               value: $(GEOSERVER_DATA_DIR)/gwc
             - name: GEOWEBCACHE_CACHE_DIR
-              value: /var/geoserver/gwc_cache_dir
+              value: $(GEOSERVER_DATA_DIR)/gwc_cache_dir
             - name: JAVA_OPTS
               value: "-Xms2G -Xmx4G -Djava.awt.headless=true -server -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Dorg.geotools.coverage.jaiext.enabled=true -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true -DGEOSERVER_LOG_LOCATION=/var/geoserver/logs/geoserver.log -DGEOWEBCACHE_CONFIG_DIR=/var/geoserver/datadir/gwc -DGEOWEBCACHE_CACHE_DIR=/var/geoserver/datadir/gwc_cache_dir -DNETCDF_DATA_DIR=/var/geoserver/netcdf_data_dir -DGRIB_CACHE_DIR=/var/geoserver/grib_cache_dir -DGEOSERVER_CSRF_DISABLED=true -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR) -DGEOSERVER_AUDIT_PATH=$(GEOSERVER_AUDIT_PATH) -Dpod.hostname=$(POD_HOSTNAME)"
           ports:
@@ -85,28 +87,24 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: /geoserver
+              path: /geoserver/index.html
               port: http
             failureThreshold: 36
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /geoserver
+              path: /geoserver/index.html
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /geoserver
+              path: /geoserver/index.html
               port: http
             successThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: gs-root
-              mountPath: /data
-            - name: gs-coverages
-              mountPath: /var/geoserver/coverages
             - name: gs-datadir
               mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
@@ -171,12 +169,6 @@ spec:
               mountPath: /var/lib/postgresql
         {{- end }}
       volumes:
-      - name: gs-root
-        persistentVolumeClaim:
-          claimName: {{ include "geoserver.fullname" . }}-root
-      - name: gs-coverages
-        persistentVolumeClaim:
-          claimName: {{ include "geoserver.fullname" . }}-coverages
       - name: gs-datadir
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
