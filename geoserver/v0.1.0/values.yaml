@@ -112,7 +112,7 @@ secrets:
 
 postgis:
   enabled: true
-  image: "postgis/postgis:13-3.1-alpine"
+  image: "postgis/postgis:12-3.1"
   pullPolicy: IfNotPresent
   resources: {}
   env:
