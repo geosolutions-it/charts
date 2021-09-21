@@ -40,17 +40,14 @@ spec:
             - name: gs-datadir
               mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
-              mountPath: /efs/memdumps
+              mountPath: /var/geoserver/memory_dumps
             - name: logs
               mountPath: /app-logs/geoserver/logs
-              subPathExpr: $(POD_HOSTNAME)
             - name: audits
               mountPath: /app-logs/geoserver/audits
-              subPathExpr: $(POD_HOSTNAME)
             - name: tomcat-logs
               mountPath: /app-logs/geoserver/tomcat-logs
-              subPathExpr: $(POD_HOSTNAME)
-          command: ['sh', '-c', 'mkdir -p /efs/memdumps/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME) && mkdir -p /var/geoserver/data_dir/gwc && mkdir -p /var/geoserver/data_dir/gwc_cache_dir && mkdir -p /var/geoserver/memory_dumps/$(POD_HOSTNAME) && chown -R 1000:1000 /app-logs && chown -R 1000:1000 /var/geoserver']
+          command: ['sh', '-c', 'mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/audits/$(POD_HOSTNAME) && mkdir -p /app-logs/geoserver/logs/$(POD_HOSTNAME) && mkdir -p /var/geoserver/memory_dumps/$(POD_HOSTNAME) && chown -R 1000:1000 /app-logs && chown -R 1000:1000 /var/geoserver']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -105,32 +102,32 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: gs-datadir
-              mountPath: /var/geoserver/data_dir
-            - name: gs-memdumps
-              mountPath: /var/geoserver/memory_dumps
-            - name: masterpwd
-              mountPath: "/var/geoserver/data_dir/security/masterpw/default/passwd"
-              subPath: master_passwd
-              readOnly: true
             - name: context
               mountPath: /usr/local/tomcat/conf/context.xml
               subPath: context.xml
               readOnly: true
-            - name: logs
-              mountPath: /var/geoserver/logs
+            - name: server-xml
+              mountPath: /usr/local/tomcat/conf/server.xml
+              subPath: server.xml
+              readOnly: true
+            - name: masterpwd
+              mountPath: "/var/geoserver/data_dir/security/masterpw/default/passwd"
+              subPath: master_passwd
+              readOnly: true
+            - name: gs-datadir
+              mountPath: /var/geoserver/data_dir
+            - name: gs-memdumps
+              mountPath: /var/geoserver/memory_dumps
               subPathExpr: $(POD_HOSTNAME)
             - name: audits
               mountPath: /var/geoserver/audits
               subPathExpr: $(POD_HOSTNAME)
+            - name: logs
+              mountPath: /var/geoserver/logs
+              subPathExpr: $(POD_HOSTNAME)
             - name: tomcat-logs
               mountPath: /usr/local/tomcat/logs
               subPathExpr: $(POD_HOSTNAME)
-            - name: app-logs
-              mountPath: /app-logs
-            - name: server-xml
-              mountPath: /usr/local/tomcat/conf/server.xml
-              subPath: server.xml
         {{- if .Values.postgis.enabled }}
         - name: postgis
           image: {{ .Values.postgis.image }}
@@ -184,10 +181,6 @@ spec:
       - name: context
         secret:
           secretName: {{ include "geoserver.fullname" .}}-context
-      - name: app-logs
-        hostPath:
-          path: /app-logs
-          type: DirectoryOrCreate
       - name: logs
         hostPath:
           path: /app-logs/geoserver/logs
