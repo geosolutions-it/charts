@@ -17,6 +17,8 @@ git clone https://github.com/geosolutions-it/charts.git -b develop
 2. Then, create a new namespace called geoserver-helm :
  `kubectl create namespace geoserver-helm`
 #  Validating template generation locally with helm template
+
 `helm template name chart-dir `
+
  `helm lint v0.1.0/`
 
