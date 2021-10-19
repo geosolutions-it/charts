@@ -32,4 +32,18 @@ HELM Charts by GeoSolutions
 `helm template name chart-dir `
 
  `helm lint v0.1.0/`
+ 
+ # Install our app using our Chart
+ 
+ `helm install geoserver v0.1.0/ 
+ # list our releases
+
+helm list
+
+# see our deployed components
+
+kubectl get all
+kubectl get cm
+kubectl get secret `
+ 
 
