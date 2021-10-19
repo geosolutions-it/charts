@@ -9,8 +9,8 @@ HELM Charts by GeoSolutions
 • yamale
 • chart-testing ( ct )
 # git clone
-git clone https://github.com/geosolutions-it/charts.git -b develop
-
+ `git clone https://github.com/geosolutions-it/charts.git -b develop`
+ 
 # Setting up your environment
 1. Start minikube by running the minikube start command:
  `minikube start`
