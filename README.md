@@ -2,12 +2,19 @@
 HELM Charts by GeoSolutions
 # Technical requirements
 • minikube
+
 • kubectl
+
 • helm
+
 • git
+
 • yamllint
+
 • yamale
+
 • chart-testing ( ct )
+
 # git clone
  `git clone https://github.com/geosolutions-it/charts.git -b develop`
  
