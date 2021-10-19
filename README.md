@@ -22,9 +22,11 @@ HELM Charts by GeoSolutions
 1. Start minikube by running the minikube start command:
 
  `minikube start`
-2. Then, create a new namespace called geoserver-helm :
-
+ 
+2. Then, create a new namespace called geoserver-helm 
+3. 
  `kubectl create namespace geoserver-helm`
+ 
 #  Validating template generation locally with helm template
 
 `helm template name chart-dir `
