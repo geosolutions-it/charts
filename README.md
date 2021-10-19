@@ -24,7 +24,6 @@ HELM Charts by GeoSolutions
  `minikube start`
  
 2. Then, create a new namespace called geoserver-helm 
-3. 
  `kubectl create namespace geoserver-helm`
  
 #  Validating template generation locally with helm template
