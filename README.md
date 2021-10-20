@@ -41,9 +41,12 @@ HELM Charts by GeoSolutions
 helm list
 
 # see our deployed components
+`kubectl get all `
 
-kubectl get all
-kubectl get cm
-kubectl get secret `
+
+`kubectl get cm `
+
+`kubectl get secret ``
+
  
 
