@@ -51,8 +51,11 @@ helm list
 # value injection
 
 `779  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=2Gi
+
   780  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=2Gi | grep 2Gi 
+  
   781  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=4Gi | grep 2Gi 
+  
   782  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=4Gi 
   783  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=16Gi | grep 16Gi 
   784  helm template geo geoserver/v0.1.0/  --set persistence.datadir.size=16Gi | grep 16Gi 
