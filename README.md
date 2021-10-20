@@ -50,7 +50,7 @@ helm list
 
 # value injection
 
-`779  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=2Gi
+779  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=2Gi
 
   780  helm template geo geoserver/v0.1.0/  --set persistence.postgis.size=2Gi | grep 2Gi 
   
@@ -69,7 +69,7 @@ helm list
   792  helm template geo geoserver/v0.1.0/  --set images.tag=gs-stable-2.20.x | grep gs-stable-2.20.x
   793  helm template geo geoserver/v0.1.0/  --set service.port=9081 | grep 9081
   794  helm template geo geoserver/v0.1.0/  --set secrets.master_password=newpasword | grep newpassword
-  795  helm template geo geoserver/v0.1.0/  --set secrets.master_password=newpasword | grep newpasword `
+  795  helm template geo geoserver/v0.1.0/  --set secrets.master_password=newpasword | grep newpasword 
 
 
  
