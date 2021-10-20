@@ -46,7 +46,7 @@ helm list
 
 `kubectl get cm `
 
-`kubectl get secret ``
+`kubectl get secret `
 
  
 
