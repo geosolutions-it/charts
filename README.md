@@ -35,7 +35,7 @@ HELM Charts by GeoSolutions
  
  # Install our app using our Chart
  
- `helm install geoserver v0.1.0/ 
+ `helm install geoserver v0.1.0/ `
  # list our releases
 
 helm list
