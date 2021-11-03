@@ -3,7 +3,7 @@ This project provides template Helm Charts for deploying a [Geoserver](http://ge
 
 The templates require your application to built into a [Docker image](https://github.com/geosolutions-it/docker-geoserver). 
 
-This project provides the following files
+
 This project provides the following files:
 
 | File                                              | Description                                                           |
