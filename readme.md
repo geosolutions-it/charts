@@ -59,3 +59,9 @@ The following table lists the configurable parameters of the template Helm chart
 | `persistence.postgis.size`      | -----                            | `1Gi`                                                     |
 | `secrets.master_password`      | -----                            | `geoserver`                                                     |
 | `secrets.postgis_password`      | -----                            | `geoserver`                                                     |
+## Using the Chart to deploy your Application to Kubernetes
+
+
+
+
+## Uninstalling your Application
