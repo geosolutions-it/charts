@@ -31,6 +31,9 @@ HELM Charts by GeoSolutions
 
 `helm template name chart-dir `
 
+`helm template geoserver v0.1.0/  --values v0.1.0/values.yaml
+`
+
  `helm lint v0.1.0/`
  
  # Install our app using our Chart
