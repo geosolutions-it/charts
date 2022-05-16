@@ -25,16 +25,16 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 1000
 
-securityContext: {}
+securityContext:
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
 
 service:
   type: ClusterIP
@@ -85,36 +85,63 @@ tolerations: []
 affinity: {}
 
 persistence:
-  root:
+  audits:
     accessModes: ReadWriteOnce
-    # size: 10Gi
     size: 1Gi
+    storageClass: ""
+  logs:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+    storageClass: ""
+  tomcatlogs:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+    storageClass: ""
   coverages:
     accessModes: ReadWriteOnce
-    # size: 150Gi
     size: 1Gi
+    storageClass: ""
   datadir:
     accessModes: ReadWriteOnce
-    # size: 10Gi
     size: 1Gi
+    storageClass: ""
   memdumps:
     accessModes: ReadWriteOnce
-    # size: 20Gi
     size: 1Gi
+    storageClass: ""
   postgis:
     accessModes: ReadWriteOnce
-    # size: 200Gi
     size: 1Gi
+    storageClass: ""
 
 secrets:
   master_password: "geoserver"
   postgis_password: "geoserver"
-
+  admin_password: "notgeoserver"
 postgis:
-  enabled: true
+  enabled: false
   image: "postgis/postgis:12-3.1"
   pullPolicy: IfNotPresent
   resources: {}
   env:
     database: geoserver
     user: geoserver
+geoserver:
+  # space separated list of plugin URLs (see also this possibility below to format such string)
+  # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
+  #   https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-control-flow-plugin.zip"
+  # to enable audit logging once the pod is deployed go inside the geoserver pod and configure it in the datadir according to doc:
+  # https://docs.geoserver.org/latest/en/user/extensions/monitoring/audit.html
+  plugins: ""
+  geoserver_log_location: "/var/geoserver/logs/$(POD_HOSTNAME).log"
+  geoserver_audit_path: "/var/geoserver/audits"
+  geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
+  geoserver_data_dir: "/var/geoserver/datadir"
+  geoserver_cache_data_dir: "$(GEOSERVER_DATA_DIR)/gwc_cache_dir"
+  geoserver_cache_config_dir: "$(GEOSERVER_DATA_DIR)/gwc"
+  geoserver_netcdf_data_dir: "/var/geoserver/netcdf_data_dir"
+  geoserver_grib_cache_dir: "/var/geoserver/grib_cache_dir"
+  geoserver_csrf_disabled: "true"
+  geoserver_jai_ext_enabled: "true"
+  geoserver_java_mem_xms: "4G"
+  geoserver_java_mem_xmx: "4G"
