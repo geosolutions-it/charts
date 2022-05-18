@@ -48,17 +48,6 @@ cp geoserver/v0.1.0/values.yaml geoserver/v0.1.0/custom-values.yaml
 </Context>
 ```
 
-Concerning the security context of pod and pv(s), it is recommended not to comment out this section, because the docker image runs natively as non root, althogh the id or gid of `1000` can be changed to anything else and they can be differnt values, in case the infrastructure requires different ID/GID mapping:
-
-```yml
-podSecurityContext:
-  fsGroup: 1000
-
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-```
-
 Once the `custom-values.yaml` is ready and suits the configuration needs, the helm chart can be deployed like this:
 
 ```bash
