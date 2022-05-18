@@ -53,7 +53,7 @@ spec:
             - name: gs-datadir
               mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
-              mountPath: $GEOSERVER_HEAP_DUMP_DIR
+              mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
             - name: gs-audits
               mountPath: $(GEOSERVER_AUDIT_PATH)
             - name: gs-logs
