@@ -81,7 +81,12 @@ If you want to change the password you can do it via [REST API](https://docs.geo
 
 ### Specific configuration options for GeoServer
 
-The default directory structure, possibility to add plugins to the GeoServer war file, enable/disable [JAI extension](https://docs.geoserver.org/master/en/user/configuration/image_processing/index.html), enable or disable [CSRF (Cross-Site Request Forgery)](https://docs.geoserver.org/stable/en/user/security/webadmin/csrf.html),configure tomcat's `Xmx` maximum memory allocation pool and `Xms` or tomcat's initial memory allocation pool.
+- The default directory structure is fully configurable.
+- There is possibility to add plugins to the GeoServer war file
+- Possibility to enable/disable [JAI extension](https://docs.geoserver.org/master/en/user/configuration/image_processing/index.html)
+- Possibility to enable or disable [CSRF (Cross-Site Request Forgery)](https://docs.geoserver.org/stable/en/user/security/webadmin/csrf.html)
+- configure tomcat's `Xmx`  maximum Java heap size
+- configure tomcat's `Xms` initial Java heap size.
 
 ```yml
 geoserver:
@@ -124,3 +129,5 @@ service:
   type: NodePort
   port: 80
 ```
+
+Reference: https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
