@@ -60,7 +60,7 @@ spec:
               mountPath: $(GEOSERVER_LOG_LOCATION)
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p /app-logs/geoserver/tomcat-logs/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

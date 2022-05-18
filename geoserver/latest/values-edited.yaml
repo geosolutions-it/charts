@@ -1,0 +1,139 @@
+# Default values for geoserver.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: geosolutionsit/geoserver
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2.20.4"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: alb
+
+  hosts:
+    - host: geoserver-voxel.local
+      paths:
+        - path: /geoserver
+          pathType: ImplementationSpecific
+          backend:
+            serviceName: geoserver
+            servicePort: 8080
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  audits:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  logs:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  tomcatlogs:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  coverages:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  datadir:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  memdumps:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+  postgis:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+
+secrets:
+  master_password: "geoserver"
+  postgis_password: "geoserver"
+
+postgis:
+  enabled: false
+  image: "postgis/postgis:12-3.1"
+  pullPolicy: IfNotPresent
+  resources: {}
+  env:
+    database: geoserver
+    user: geoserver
+
+geoserver:
+  plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
+    https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-control-flow-plugin.zip"
+  geoserver_log_location: "/var/geoserver/logs/$(POD_HOSTNAME).log"
+  geoserver_audit_path: "/var/geoserver/audits"
+  geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
+  geoserver_data_dir: "/var/geoserver/datadir"
+  geoserver_cache_data_dir: "$(GEOSERVER_DATA_DIR)/gwc_cache_dir"
+  geoserver_cache_config_dir: "$(GEOSERVER_DATA_DIR)/gwc"
+  geoserver_netcdf_data_dir: "/var/geoserver/netcdf_data_dir"
+  geoserver_grib_cache_dir: "/var/geoserver/grib_cache_dir"
+  geoserver_csrf_disabled: "true"
+  geoserver_jai_ext_enabled: "true"
+  geoserver_java_mem_xms: "4G"
+  geoserver_java_mem_xmx: "4G"
