@@ -1,0 +1,125 @@
+{{- if and .Values.persistence.datadir (not .Values.persistence.datadir.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-datadir
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.datadir.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.datadir.size | quote }}
+  {{- if .Values.persistence.datadir.storageClass }}
+  storageClassName: {{ .Values.persistence.datadir.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.memdumps (not .Values.persistence.memdumps.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-memdumps
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.memdumps.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.memdumps.size | quote }}
+  {{- if .Values.persistence.memdumps.storageClass }}
+  storageClassName: {{ .Values.persistence.memdumps.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.postgis.enabled (not .Values.persistence.postgis.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-postgis
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.postgis.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.postgis.size | quote }}
+  {{- if .Values.persistence.postgis.storageClass }}
+  storageClassName: {{ .Values.persistence.postgis.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.coverages (not .Values.persistence.coverages.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-coverages
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.coverages.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.coverages.size | quote }}
+  {{- if .Values.persistence.coverages.storageClass }}
+  storageClassName: {{ .Values.persistence.coverages.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.audits (not .Values.persistence.audits.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-audits
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.audits.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.audits.size | quote }}
+  {{- if .Values.persistence.audits.storageClass }}
+  storageClassName: {{ .Values.persistence.audits.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.logs (not .Values.persistence.logs.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-logs
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.logs.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.logs.size | quote }}
+  {{- if .Values.persistence.logs.storageClass }}
+  storageClassName: {{ .Values.persistence.logs.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.tomcatlogs (not .Values.persistence.tomcatlogs.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-tomcatlogs
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.logs.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.tomcatlogs.size | quote }}
+  {{- if .Values.persistence.tomcatlogs.storageClass }}
+  storageClassName: {{ .Values.persistence.tomcatlogs.storageClass }}
+  {{- end }}
+{{- end }}
