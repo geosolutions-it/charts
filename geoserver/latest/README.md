@@ -2,6 +2,17 @@
 
 ## Helm Chart Installation
 
+### Admin password change
+
+You can put a custom password at installation time in `values.yaml`, so it is not the default which is `notgeoserver` and it is *different* from war's default that is `geoserver`.
+If you want to change the password you can do it via [REST API](https://docs.geoserver.org/stable/en/user/rest/api/selfadmin.html) or with the GeoServer UI:
+
+- Click on the left, under Security section, "Users,Groups, and Roles"
+- Click on Users/Groups tab, then click on admin user
+- Edit the password and save.
+
+### Chart deployment
+
 1) Clone the helm chart repo
 
 ```bash
@@ -26,15 +37,6 @@ helm3 install geoserver . --values ./custom-values.yaml
 Once configured you will be promped with the geoserver final URL with the customized hostname (dns records are not handled by the chart) served by the k8s ingress.
 
 ## Notes on GeoServer configuration
-
-### Admin password change
-
-You can put a custom password at installation time, so it is not the default which is `notgeoserver` and it is *different* from war's default that is `geoserver`.
-If you want to change the password you can do it via [REST API](https://docs.geoserver.org/stable/en/user/rest/api/selfadmin.html) or with the GeoServer UI:
-
-- Click on the left, under Security section, "Users,Groups, and Roles"
-- Click on Users/Groups tab, then click on admin user
-- Edit the password and save.
 
 ### Specific configuration options for GeoServer
 
