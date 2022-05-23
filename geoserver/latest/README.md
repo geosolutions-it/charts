@@ -14,39 +14,7 @@ git clone https://github.com/geosolutions-it/charts.git
 cp geoserver/v0.1.0/values.yaml geoserver/v0.1.0/custom-values.yaml
 ```
 
-3) Edit sample `context.xml` to add as many JNDI datasources are needed. The sample `context.xml` contains by default the JNDI datasource for the embedded postgis service that can be enabled in `values.yaml`. Example:
 
-```xml
-<Context>
-
-    <!-- Default set of monitored resources -->
-    <WatchedResource>WEB-INF/web.xml</WatchedResource>
-
-    <!-- Uncomment this to disable session persistence across Tomcat restarts -->
-    <!--
-    <Manager pathname="" />
-    -->
-
-    <!-- Uncomment this to enable Comet connection tacking (provides events
-         on session expiration as well as webapp lifecycle) -->
-    <!--
-    <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
-    -->
-
-    <Resource
-     name="jdbc/postgres" auth="Container" type="javax.sql.DataSource"
-     driverClassName="org.postgresql.Driver"
-     url="jdbc:postgresql://127.0.0.1:5432/geoserver"
-     username="geoserver" password="geoserver"
-     initialSize="0" maxActive="20" maxIdle="5" maxWait="2000" minIdle="0"
-     timeBetweenEvictionRunsMillis="30000"
-     minEvictableIdleTimeMillis="60000"
-     validationQuery="SELECT 1"
-     maxAge="600000"
-     rollbackOnReturn="true"
-     />
-</Context>
-```
 
 Once the `custom-values.yaml` is ready and suits the configuration needs, the helm chart can be deployed like this:
 
@@ -120,3 +88,41 @@ service:
 ```
 
 Reference: https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html
+
+### Optional JNDI configuration for PostGIS
+
+In case embedded PostGIS service is enable or per-existing database server is to be used, there is the possibility to configure automatically 
+tomcat JNDI connections at deployment time.
+Edit sample `context.xml` to add as many JNDI datasources are needed. The sample `context.xml` contains by default the JNDI datasource for the embedded postgis service that can be enabled in `values.yaml`. Example:
+
+```xml
+<Context>
+
+    <!-- Default set of monitored resources -->
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+    <!-- Uncomment this to disable session persistence across Tomcat restarts -->
+    <!--
+    <Manager pathname="" />
+    -->
+
+    <!-- Uncomment this to enable Comet connection tacking (provides events
+         on session expiration as well as webapp lifecycle) -->
+    <!--
+    <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
+    -->
+
+    <Resource
+     name="jdbc/postgres" auth="Container" type="javax.sql.DataSource"
+     driverClassName="org.postgresql.Driver"
+     url="jdbc:postgresql://127.0.0.1:5432/geoserver"
+     username="geoserver" password="geoserver"
+     initialSize="0" maxActive="20" maxIdle="5" maxWait="2000" minIdle="0"
+     timeBetweenEvictionRunsMillis="30000"
+     minEvictableIdleTimeMillis="60000"
+     validationQuery="SELECT 1"
+     maxAge="600000"
+     rollbackOnReturn="true"
+     />
+</Context>
+```
