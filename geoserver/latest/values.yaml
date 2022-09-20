@@ -37,7 +37,8 @@ securityContext:
   runAsUser: 1000
 
 service:
-  type: ClusterIP
+  #type: ClusterIP
+  type: LoadBalancer
   port: 80
 
 ingress:
@@ -47,7 +48,7 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: geoserver.local
+    - host: azure.geoserver
       paths:
         - path: /geoserver
           pathType: ImplementationSpecific
@@ -88,32 +89,39 @@ persistence:
   audits:
     accessModes: ReadWriteOnce
     size: 1Gi
-    storageClass: ""
+    storageClass: "managed-csi"
   logs:
     accessModes: ReadWriteOnce
     size: 1Gi
-    storageClass: ""
+    storageClass: "managed-csi"
   tomcatlogs:
     accessModes: ReadWriteOnce
     size: 1Gi
-    storageClass: ""
+    storageClass: "managed-csi"
   coverages:
-    accessModes: ReadWriteOnce
+    accessModes: ReadWriteMany
     size: 1Gi
-    storageClass: ""
+    storageClass: "geoserver-azurefile"
   datadir:
-    accessModes: ReadWriteOnce
+    accessModes: ReadWriteMany
     size: 1Gi
-    storageClass: ""
+    storageClass: "geoserver-azurefile"
   memdumps:
-    accessModes: ReadWriteOnce
+    accessModes: ReadWriteMany
     size: 1Gi
-    storageClass: ""
+    storageClass: "geoserver-azurefile"
   postgis:
     accessModes: ReadWriteOnce
     size: 1Gi
-    storageClass: ""
-
+    storageClass: "managed-csi"
+  cachedatadir:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+    storageClass: "managed-csi"
+  gribcachedir:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+    storageClass: "managed-csi"
 secrets:
   master_password: "geoserver"
   postgis_password: "geoserver"
@@ -137,7 +145,7 @@ geoserver:
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
   geoserver_data_dir: "/var/geoserver/datadir"
-  geoserver_cache_data_dir: "$(GEOSERVER_DATA_DIR)/gwc_cache_dir"
+  geoserver_cache_data_dir: "/var/geoserver/gwc_cache_dir"
   geoserver_cache_config_dir: "$(GEOSERVER_DATA_DIR)/gwc"
   geoserver_netcdf_data_dir: "/var/geoserver/netcdf_data_dir"
   geoserver_grib_cache_dir: "/var/geoserver/grib_cache_dir"

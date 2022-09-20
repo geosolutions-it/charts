@@ -106,6 +106,42 @@ spec:
   {{- end }}
 {{- end }}
 ---
+{{- if and .Values.persistence.cachedatadir (not .Values.persistence.cachedatadir.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-cachedatadir
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.cachedatadir.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.cachedatadir.size | quote }}
+  {{- if .Values.persistence.cachedatadir.storageClass }}
+  storageClassName: {{ .Values.persistence.cachedatadir.storageClass }}
+  {{- end }}
+{{- end }}
+---
+{{- if and .Values.persistence.gribcachedir (not .Values.persistence.gribcachedir.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-gribcachedir
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.gribcachedir.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.gribcachedir.size | quote }}
+  {{- if .Values.persistence.gribcachedir.storageClass }}
+  storageClassName: {{ .Values.persistence.gribcachedir.storageClass }}
+  {{- end }}
+{{- end }}
+---
 {{- if and .Values.persistence.tomcatlogs (not .Values.persistence.tomcatlogs.existingClaim) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
