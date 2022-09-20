@@ -48,19 +48,30 @@ spec:
             - name: GEOSERVER_HEAP_DUMP_DIR
               value: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
             {{- end }}
-
+            {{- if .Values.geoserver.geoserver_cache_data_dir}}
+            - name: GEOSERVER_CACHE_DATA_DIR
+              value: "{{ .Values.geoserver.geoserver_cache_data_dir }}"
+            {{- end }}            
+            {{- if .Values.geoserver.grib_cache_dir }}
+            - name: GEOSERVER_GRIB_CACHE_DIR
+              value: "{{ .Values.geoserver.grib_cache_dir }}"
+            {{- end }}            
           volumeMounts:
             - name: gs-datadir
               mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
+            - name: gs-cachedatadir
+              mountPath: $(GEOSERVER_CACHE_DATA_DIR)
+            - name: gs-gribcachedir
+              mountPath: $(GEOSERVER_GRIB_CACHE_DIR)
             - name: gs-audits
               mountPath: $(GEOSERVER_AUDIT_PATH)
             - name: gs-logs
               mountPath: $(GEOSERVER_LOG_LOCATION)
             - name: gs-tomcatlogs
-              mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
+              mountPath: /usr/local/tomcat/logs            
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_GRIB_CACHE_DIR)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_CACHE_DATA_DIR)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -131,13 +142,7 @@ spec:
               value: "{{ .Values.geoserver.geoserver_java_mem_xmx }}"
             {{- end }}
             - name: JAVA_OPTS
-              value: "-Xms$(JAVA_XMS) -Xmx$(JAVA_XMX) -Djava.awt.headless=true -server -Dfile.encoding=UTF8 \
-                \ -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC
-                \ -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true
-                \ -Dorg.geotools.coverage.jaiext.enabled=\"$(JAI_EXT_ENABLED)\" -DGEOSERVER_LOG_LOCATION=\"$(GEOSERVER_LOG_LOCATION)\" -DGEOWEBCACHE_CONFIG_DIR=\"$(GEOWEBCACHE_CONFIG_DIR)\"
-                \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=$(GEOSERVER_CSRF_DISABLED)\"
-                \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)\"
-                \ -DGEOSERVER_AUDIT_PATH=$\"(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\""
+              value: "-Xms$(JAVA_XMS) -Xmx$(JAVA_XMX) -Djava.awt.headless=true -server -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true -Dorg.geotools.coverage.jaiext.enabled=$(JAI_EXT_ENABLED) -DGEOSERVER_LOG_LOCATION=$(GEOSERVER_LOG_LOCATION) -DGEOWEBCACHE_CONFIG_DIR=$(GEOWEBCACHE_CONFIG_DIR) -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=$(GEOSERVER_CSRF_DISABLED) -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR) -DGEOSERVER_AUDIT_PATH=$(GEOSERVER_AUDIT_PATH) -Dpod.hostname=$(POD_HOSTNAME)"
           ports:
             - name: http
               containerPort: 8080
@@ -177,12 +182,16 @@ spec:
               mountPath: /var/geoserver/data_dir
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
+            - name: gs-cachedatadir
+              mountPath: /var/geoserver/gwc_cache_dir
+            - name: gs-gribcachedir
+              mountPath: /var/geoserver/grib_cache_dir
             - name: gs-audits
               mountPath: /var/geoserver/audits
             - name: gs-logs
               mountPath: /var/geoserver/logs
             - name: gs-tomcatlogs
-              mountPath: /usr/local/tomcat/logs
+              mountPath: /usr/local/tomcat/logs            
         {{- if .Values.postgis.enabled }}
         - name: postgis
           image: {{ .Values.postgis.image }}
@@ -233,6 +242,16 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-memdumps
       {{- end }}
+      {{- if .Values.persistence.cachedatadir }}
+      - name: gs-cachedatadir
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-cachedatadir
+      {{- end }}
+      {{- if .Values.persistence.gribcachedir }}
+      - name: gs-gribcachedir
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-gribcachedir
+      {{- end }}
       {{- if .Values.persistence.logs }}
       - name: gs-logs
         persistentVolumeClaim:
@@ -247,7 +266,7 @@ spec:
       - name: gs-audits
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
-      {{- end }}
+      {{- end }}      
       - name: context
         secret:
           secretName: {{ include "geoserver.fullname" .}}-context
