@@ -51,7 +51,7 @@ spec:
 
           volumeMounts:
             - name: gs-datadir
-              mountPath: /var/geoserver/data_dir
+              mountPath: /var/geoserver/datadir
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
             - name: gs-audits
@@ -174,7 +174,7 @@ spec:
               subPath: server.xml
               readOnly: true
             - name: gs-datadir
-              mountPath: /var/geoserver/data_dir
+              mountPath: /var/geoserver/datadir
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
