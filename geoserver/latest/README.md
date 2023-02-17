@@ -44,7 +44,9 @@ kubectl get ingress
 ```
 It must respond with IP after certain time as shown below.
 
-![Screenshot 2023-02-15 113457](https://user-images.githubusercontent.com/94710364/219696513-785e6520-9651-4dca-b443-e3d3ac46cbac.png)
+
+![Screenshot_20230217_041451](https://user-images.githubusercontent.com/94710364/219697153-3cd8ca53-a278-4b30-850e-897f041e09e6.png)
+
 
 
 
