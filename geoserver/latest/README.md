@@ -44,7 +44,8 @@ kubectl get ingress
 ```
 It must respond with IP after certain time as shown below.
 
-image.png
+![Screenshot 2023-02-15 113457](https://user-images.githubusercontent.com/94710364/219696513-785e6520-9651-4dca-b443-e3d3ac46cbac.png)
+
 
 
 ### Testing
@@ -58,7 +59,8 @@ kubectl port-forward [pod-name] [local-port]:[resource-port]
 2) Open your browser and paste the url of geoserver. You can see the User interface of geoserver same like below screenshot. 
 
 
-image.png
+![Screenshot_20230217_024956](https://user-images.githubusercontent.com/94710364/219696756-c4404c25-6442-41f2-bcc7-7893a32f6123.png)
+
 
 
 ## Notes on GeoServer configuration
