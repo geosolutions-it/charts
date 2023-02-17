@@ -27,8 +27,6 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- end }}
   {{- if .Values.ingress.tls }}
-  externalIPs:
-  - 192.168.59.107 # minikube ip
   tls:
     {{- range .Values.ingress.tls }}
     - hosts:

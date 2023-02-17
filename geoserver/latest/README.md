@@ -37,6 +37,30 @@ helm3 install geoserver . --values ./custom-values.yaml
 
 Once configured you will be promped with the geoserver final URL with the customized hostname (dns records are not handled by the chart) served by the k8s ingress.
 
+Note: Check properly that you have proper Ingress Controller configured in the cluster
+
+```bash
+kubectl get ingress
+```
+It must respond with IP after certain time as shown below.
+
+image.png
+
+
+### Testing
+
+1) Create a port forward to geoserver
+   
+```bash
+kubectl port-forward [pod-name] [local-port]:[resource-port]
+```
+
+2) Open your browser and paste the url of geoserver. You can see the User interface of geoserver same like below screenshot. 
+
+
+image.png
+
+
 ## Notes on GeoServer configuration
 
 ### Specific configuration options for GeoServer
