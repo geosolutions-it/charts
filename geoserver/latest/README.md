@@ -37,32 +37,31 @@ helm3 install geoserver . --values ./custom-values.yaml
 
 Once configured you will be promped with the geoserver final URL with the customized hostname (dns records are not handled by the chart) served by the k8s ingress.
 
-Note: Check properly that you have proper Ingress Controller configured in the cluster
+Note: For the K8s Ingress to work and GeoServer be directly exposed on a public IP address, make sure you have a working Ingress Controller configured in your the cluster.
 
 ```bash
 kubectl get ingress
 ```
-It must respond with IP after certain time as shown below.
+Should give you the IP address at which you can contact GeoServer as shown below.
 
-
-![Screenshot_20230217_041451](https://user-images.githubusercontent.com/94710364/219697153-3cd8ca53-a278-4b30-850e-897f041e09e6.png)
-
-
+![image](https://user-images.githubusercontent.com/5264230/220570461-76b451ac-7b50-4320-a182-8a765ae2fbef.png)
 
 
 ### Testing
 
-1) Create a port forward to geoserver
+For a quick test create a Port Forward to the GeoServer Pod
+
+1) Create a [Port Forward](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/) to geoserver. For instance:
    
 ```bash
-kubectl port-forward [pod-name] [local-port]:[resource-port]
+kubectl port-forward geoserver-0 8080:8080
 ```
 
-2) Open your browser and paste the url of geoserver. You can see the User interface of geoserver same like below screenshot. 
+
+2) Open your browser and navigate to http://localhost:8080/geoserver. You can see the User interface of geoserver same like below screenshot. 
 
 
 ![Screenshot_20230217_024956](https://user-images.githubusercontent.com/94710364/219696756-c4404c25-6442-41f2-bcc7-7893a32f6123.png)
-
 
 
 ## Notes on GeoServer configuration
