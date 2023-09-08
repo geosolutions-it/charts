@@ -18,20 +18,19 @@ If you want to change the password you can do it via [REST API](https://docs.geo
 
 ```bash
 git clone https://github.com/geosolutions-it/charts.git
+cd charts/geoserver/latest
 ```
 
 2) Within the root of the helm chart, create a custom `values.yaml` file
 
 ```bash
-cp geoserver/v0.1.0/values.yaml geoserver/v0.1.0/custom-values.yaml
+cp ./values.yaml ./custom-values.yaml
 ```
-
 
 
 Once the `custom-values.yaml` is ready and suits the configuration needs, the helm chart can be deployed like this:
 
 ```bash
-cd geoserver/v0.1.0
 helm3 install geoserver . --values ./custom-values.yaml
 ```
 
