@@ -82,6 +82,10 @@ spec:
             - name: PLUGIN_DYNAMIC_URLS
               value: "{{ .Values.geoserver.plugins }}"
             {{- end }}
+            {{- if .Values.geoserver.geoserver_proxy_base_url }}
+            - name: PROXY_BASE_URL
+              value: "{{ .Values.geoserver.geoserver_proxy_base_url }}"
+            {{- end }}
             {{- if .Values.geoserver.geoserver_log_location }}
             - name: GEOSERVER_LOG_LOCATION
               value: "{{ .Values.geoserver.geoserver_log_location }}"
@@ -137,7 +141,8 @@ spec:
                 \ -Dorg.geotools.coverage.jaiext.enabled=\"$(JAI_EXT_ENABLED)\" -DGEOSERVER_LOG_LOCATION=\"$(GEOSERVER_LOG_LOCATION)\" -DGEOWEBCACHE_CONFIG_DIR=\"$(GEOWEBCACHE_CONFIG_DIR)\"
                 \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=$(GEOSERVER_CSRF_DISABLED)\"
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)\"
-                \ -DGEOSERVER_AUDIT_PATH=$\"(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\""
+                \ -DGEOSERVER_AUDIT_PATH=$\"(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
+                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
           ports:
             - name: http
               containerPort: 8080
