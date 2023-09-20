@@ -133,6 +133,7 @@ geoserver:
   # to enable audit logging once the pod is deployed go inside the geoserver pod and configure it in the datadir according to doc:
   # https://docs.geoserver.org/latest/en/user/extensions/monitoring/audit.html
   plugins: ""
+  geoserver_proxy_base_url: "${X-Forwarded-Proto}://${X-Forwarded-Host}/geoserver"
   geoserver_log_location: "/var/geoserver/logs/$(POD_HOSTNAME).log"
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
