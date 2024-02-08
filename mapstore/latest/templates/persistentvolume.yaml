@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mapstore-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: {{ .Values.persistence.requests.storage | quote }}
+  volumeMode: {{ .Values.persistence.volumeMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.persistentVolumeReclaimPolicy }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+  hostPath:
+    path: {{ .Values.persistence.hostPath.path  }}
+

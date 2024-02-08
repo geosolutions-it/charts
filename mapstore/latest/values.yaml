@@ -1,0 +1,46 @@
+appName: mapstore
+
+image:
+  name: geosolutionsit/mapstore2
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  name: mapstore-ingress
+  host: mapstore.local
+  path: /mapstore
+  backendServiceName: mapstore-service
+  backendServicePort: 8080
+
+persistence:
+  accessModes: ReadWriteOnce
+  requests:
+    storage: 5Gi
+  storageClassName: manual
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mapstore-datadir
+
+env:
+  JAVA_OPTS: "-Xms512m -Xmx512m -Ddatadir.location=/usr/local/tomcat/datadir"
+
+secrets:
+  geostoreDataSource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/geostore
+    username: geostore
+    password: geostore
+  geostoreVendorAdapter:
+    databasePlatform: org.hibernate.dialect.PostgreSQLDialect
+    generateDdl: "true"
+    showSql: "false"
+  geostoreEntityManagerFactory:
+    jpaPropertyMap:
+      hbm2ddl_auto: update
+      default_schema: geostore
+  kind: Opaque

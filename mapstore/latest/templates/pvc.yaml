@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mapstore-pvc
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.requests.storage | quote }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+
