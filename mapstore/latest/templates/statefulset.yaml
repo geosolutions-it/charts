@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.appName }}
+  name: {{ include "mapstore.fullname" . }}
   labels:
-    app: {{ .Values.appName }}
+    {{- include "mapstore.labels" . | nindent 4 }}
 spec:
-  serviceName: {{ .Values.appName }}
+  serviceName: {{ include "mapstore.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.appName }}
+      {{- include "mapstore.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Values.appName }}
+        {{- include "mapstore.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: {{ .Values.appName }}
+        - name: {{ .Chart.Name }}
           image: '{{ .Values.image.name }}:{{ .Values.image.tag }}'
           imagePullPolicy: Always
           env:
@@ -37,7 +37,7 @@ spec:
       volumes:
         - name: datadir
           persistentVolumeClaim:
-            claimName: mapstore-pvc
+            claimName: {{ include "mapstore.fullname" . }}
         - name: ovr-properties
           secret:
-            secretName: ovr-secret
+            secretName: {{ include "mapstore.fullname" . }}-ovr

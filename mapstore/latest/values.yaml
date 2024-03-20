@@ -1,4 +1,5 @@
-appName: mapstore
+nameOverride: ""
+fullnameOverride: ""
 
 image:
   name: geosolutionsit/mapstore2
@@ -8,12 +9,11 @@ service:
   type: ClusterIP
   port: 80
   targetPort: 8080
+  nodePort: 30000
 
 ingress:
-  name: mapstore-ingress
   host: mapstore.local
   path: /mapstore
-  backendServiceName: mapstore-service
   backendServicePort: 8080
 
 persistence:
