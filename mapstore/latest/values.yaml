@@ -12,6 +12,7 @@ service:
   nodePort: 30000
 
 ingress:
+  className: nginx
   host: mapstore.local
   path: /mapstore
   backendServicePort: 8080

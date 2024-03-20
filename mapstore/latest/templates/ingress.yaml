@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: {{ include "mapstore.fullname" . }}
 spec:
+  ingressClassName: {{ .Values.ingress.className }}
   rules:
   - host: {{ .Values.ingress.host }}
     http:
