@@ -22,17 +22,16 @@ spec:
           env:
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS }}
-            - name: GEOSTORE_OVR_OPT
-              value: "-Dgeostore-ovr=file:///config/geostore-datasource-ovr.properties"
           ports:
             - name: http
               containerPort: 80
               protocol: TCP
           volumeMounts:
             - name: datadir
-              mountPath: /var/mapstore/datadir
+              mountPath: /datadir
             - name: ovr-properties
-              mountPath: "/config"
+              mountPath: "/config/geostore-datasource-ovr.properties"
+              subPath: geostore-datasource-ovr.properties
               readOnly: true
       volumes:
         - name: datadir
