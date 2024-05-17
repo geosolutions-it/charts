@@ -178,6 +178,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            - name: global-xml
+              mountPath: /var/geoserver/datadir/global.xml
+              subPath: global.xml
+              readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
             - name: gs-memdumps
@@ -262,6 +266,12 @@ spec:
           items:
             - key: server.xml
               path: server.xml
+      - name: global-xml
+        configMap:
+          name: geoserver
+          items:
+            - key: global.xml
+              path: global.xml
       {{- if .Values.postgis.enabled }}
       - name: postgis-persistent
         persistentVolumeClaim:
