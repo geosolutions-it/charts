@@ -143,6 +143,26 @@ spec:
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)\"
                 \ -DGEOSERVER_AUDIT_PATH=$\"(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
+            {{- if .Values.geoserver.geoserver_cors_enabled }}
+            - name: CORS_ENABLED
+              value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_methods }}
+            - name: CORS_ALLOWED_METHODS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_methods }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_origins }}
+            - name: CORS_ALLOWED_ORIGINS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_origins }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_headers }}
+            - name: CORS_ALLOWED_HEADERS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_headers }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allow_credentials }}
+            - name: CORS_ALLOW_CREDENTIALS
+              value: "{{ .Values.geoserver.geoserver_cors_allow_credentials }}"
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080

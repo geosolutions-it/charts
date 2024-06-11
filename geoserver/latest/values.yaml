@@ -146,3 +146,8 @@ geoserver:
   geoserver_jai_ext_enabled: "true"
   geoserver_java_mem_xms: "4G"
   geoserver_java_mem_xmx: "4G"
+  geoserver_cors_enabled: "false"
+  geoserver_cors_allowed_methods: "GET,POST,PUT,HEAD,OPTIONS"
+  geoserver_cors_allowed_origins: "*"
+  geoserver_cors_allowed_headers: "*"
+  geoserver_cors_allow_credentials: "false"
