@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mapstore-pvc
+  name: {{ include "mapstore.fullname" . }}
 spec:
   accessModes:
     - {{ .Values.persistence.accessModes }}
