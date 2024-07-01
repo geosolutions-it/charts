@@ -278,7 +278,7 @@ spec:
           secretName: {{ include "geoserver.fullname" .}}-context
       - name: server-xml
         configMap:
-          name: geoserver
+          name: {{ include "geoserver.fullname" . }}
           items:
             - key: server.xml
               path: server.xml
