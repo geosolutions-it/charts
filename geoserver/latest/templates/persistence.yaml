@@ -14,6 +14,9 @@ spec:
   {{- if .Values.persistence.datadir.storageClass }}
   storageClassName: {{ .Values.persistence.datadir.storageClass }}
   {{- end }}
+  {{- if .Values.persistence.datadir.manualPVName }}
+  volumeName: {{ .Values.persistence.datadir.manualPVName }}
+  {{- end }}
 {{- end }}
 ---
 {{- if and .Values.persistence.memdumps (not .Values.persistence.memdumps.existingClaim) }}
@@ -31,6 +34,9 @@ spec:
       storage: {{ .Values.persistence.memdumps.size | quote }}
   {{- if .Values.persistence.memdumps.storageClass }}
   storageClassName: {{ .Values.persistence.memdumps.storageClass }}
+  {{- end }}
+  {{- if .Values.persistence.memdumps.manualPVName }}
+  volumeName: {{ .Values.persistence.memdumps.manualPVName }}
   {{- end }}
 {{- end }}
 ---
@@ -50,6 +56,9 @@ spec:
   {{- if .Values.persistence.postgis.storageClass }}
   storageClassName: {{ .Values.persistence.postgis.storageClass }}
   {{- end }}
+  {{- if .Values.persistence.postgis.manualPVName }}
+  volumeName: {{ .Values.persistence.postgis.manualPVName }}
+  {{- end }}
 {{- end }}
 ---
 {{- if and .Values.persistence.coverages (not .Values.persistence.coverages.existingClaim) }}
@@ -67,6 +76,9 @@ spec:
       storage: {{ .Values.persistence.coverages.size | quote }}
   {{- if .Values.persistence.coverages.storageClass }}
   storageClassName: {{ .Values.persistence.coverages.storageClass }}
+  {{- end }}
+  {{- if .Values.persistence.coverages.manualPVName }}
+  volumeName: {{ .Values.persistence.coverages.manualPVName }}
   {{- end }}
 {{- end }}
 ---
@@ -86,6 +98,9 @@ spec:
   {{- if .Values.persistence.audits.storageClass }}
   storageClassName: {{ .Values.persistence.audits.storageClass }}
   {{- end }}
+  {{- if .Values.persistence.audits.manualPVName }}
+  volumeName: {{ .Values.persistence.audits.manualPVName }}
+  {{- end }}
 {{- end }}
 ---
 {{- if and .Values.persistence.logs (not .Values.persistence.logs.existingClaim) }}
@@ -104,6 +119,9 @@ spec:
   {{- if .Values.persistence.logs.storageClass }}
   storageClassName: {{ .Values.persistence.logs.storageClass }}
   {{- end }}
+  {{- if .Values.persistence.logs.manualPVName }}
+  volumeName: {{ .Values.persistence.logs.manualPVName }}
+  {{- end }}
 {{- end }}
 ---
 {{- if and .Values.persistence.tomcatlogs (not .Values.persistence.tomcatlogs.existingClaim) }}
@@ -115,11 +133,14 @@ metadata:
     {{- include "geoserver.labels" . | nindent 4 }}
 spec:
   accessModes:
-    - {{ .Values.persistence.logs.accessModes }}
+    - {{ .Values.persistence.tomcatlogs.accessModes }}
   resources:
     requests:
       storage: {{ .Values.persistence.tomcatlogs.size | quote }}
   {{- if .Values.persistence.tomcatlogs.storageClass }}
   storageClassName: {{ .Values.persistence.tomcatlogs.storageClass }}
+  {{- end }}
+  {{- if .Values.persistence.tomcatlogs.manualPVName }}
+  volumeName: {{ .Values.persistence.tomcatlogs.manualPVName }}
   {{- end }}
 {{- end }}
