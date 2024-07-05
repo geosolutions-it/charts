@@ -1,0 +1,183 @@
+{{- if .Values.persistence.createManuallyProvisionedPVs }}
+
+{{- if .Values.persistence.audits.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.audits.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.audits.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.audits.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.audits.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-audits
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.audits.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.audits.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.logs.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.logs.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.logs.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.logs.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.logs.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-logs
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.logs.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.logs.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.tomcatlogs.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.tomcatlogs.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.tomcatlogs.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.tomcatlogs.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.tomcatlogs.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-tomcatlogs
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.tomcatlogs.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.tomcatlogs.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.coverages.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.coverages.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.coverages.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.coverages.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.coverages.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-coverages
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.coverages.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.coverages.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.datadir.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.datadir.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.datadir.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.datadir.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.datadir.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-datadir
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.datadir.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.datadir.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.memdumps.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.memdumps.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.memdumps.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.memdumps.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.memdumps.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-memdumps
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.memdumps.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.memdumps.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+---
+
+{{- if .Values.persistence.postgis.manualPVName }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.persistence.postgis.manualPVName }}
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: {{ .Values.persistence.postgis.size | quote }}
+  volumeMode: Filesystem
+  accessModes:
+    - {{ .Values.persistence.postgis.accessModes }}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: {{ .Values.persistence.postgis.storageClass }}
+  claimRef:
+    name: {{ include "geoserver.fullname" . }}-postgis
+    namespace: {{ .Release.Namespace }}
+  {{- if .Values.persistence.postgis.manualPVHostPath }}
+  hostPath:
+    path: {{ .Values.persistence.postgis.manualPVHostPath }}
+  {{- end }}
+{{- end }}
+
+{{- end }}
