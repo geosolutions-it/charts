@@ -176,5 +176,10 @@ geoserver:
     -Dorg.geotools.coverage.jaiext.enabled=true -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true \
     -DGEOSERVER_LOG_LOCATION=\"$(GEOSERVER_LOG_LOCATION)\" -DGEOWEBCACHE_CONFIG_DIR=\"$(GEOWEBCACHE_CONFIG_DIR)\" \
     -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) \
-    -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) \
-    -DEXAMPLE_DB_NAME=geoserver -DEXAMPLE_DB_HOST=localhost -DEXAMPLE_DB_USER=geoserver -DEXAMPLE_DB_PASS=geoserver
+    -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR)
+
+  env_properties: |
+    EXAMPLE_DB_NAME=geoserver
+    EXAMPLE_DB_HOST=localhost
+    EXAMPLE_DB_USER=geoserver
+    EXAMPLE_DB_PASS=geoserver
