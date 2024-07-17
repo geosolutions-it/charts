@@ -139,9 +139,9 @@ spec:
                 \ -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC
                 \ -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true
                 \ -Dorg.geotools.coverage.jaiext.enabled=\"$(JAI_EXT_ENABLED)\" -DGEOSERVER_LOG_LOCATION=\"$(GEOSERVER_LOG_LOCATION)\" -DGEOWEBCACHE_CONFIG_DIR=\"$(GEOWEBCACHE_CONFIG_DIR)\"
-                \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=$(GEOSERVER_CSRF_DISABLED)\"
-                \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=$(GEOSERVER_DATA_DIR)\"
-                \ -DGEOSERVER_AUDIT_PATH=$\"(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
+                \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=\"$(GEOSERVER_CSRF_DISABLED)\"
+                \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
+                \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
