@@ -4,6 +4,12 @@ metadata:
   name: {{ include "mapstore.fullname" . }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tlsEnabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ include "mapstore.fullname" . }}-tls
+  {{- end }}
   rules:
   - host: {{ .Values.ingress.host }}
     http:
