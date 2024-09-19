@@ -16,6 +16,8 @@ ingress:
   host: mapstore.local
   path: /mapstore
   backendServicePort: 8080
+  # tlsEnabled instructs the ingress to use a certificate from k8s secret. The secret has to the chart name suffixed by -tls. eg: "mapstore-tls"
+  tlsEnabled: false
 
 persistence:
   accessModes: ReadWriteOnce

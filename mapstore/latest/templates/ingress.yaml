@@ -4,7 +4,7 @@ metadata:
   name: {{ include "mapstore.fullname" . }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
-  {{- if and (ne ( .Files.Get "cert.pem" | b64enc) "") (ne ( .Files.Get "cert.key" | b64enc) "") }}
+  {{- if .Values.ingress.tlsEnabled }}
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
