@@ -1,8 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.ingress.name }}
+  name: {{ include "mapstore.fullname" . }}
 spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tlsEnabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ include "mapstore.fullname" . }}-tls
+  {{- end }}
   rules:
   - host: {{ .Values.ingress.host }}
     http:
@@ -11,6 +18,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: {{ .Values.ingress.backendServiceName }}
+            name: {{ include "mapstore.fullname" . }}
             port:
               number: {{ .Values.ingress.backendServicePort }}
