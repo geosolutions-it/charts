@@ -51,8 +51,10 @@ spec:
             {{- end }}
 
           volumeMounts:
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
             - name: gs-audits
@@ -205,8 +207,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
@@ -255,13 +259,10 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
-      - name: gs-datadir
       {{- if .Values.persistence.datadir }}
+      - name: gs-datadir
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
-      {{ else }}
-        hostPath:
-          path: /var/geoserver/
       {{- end }}
       - name: gs-memdumps
       {{- if .Values.persistence.memdumps }}
