@@ -255,30 +255,42 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
-      {{- if .Values.persistence.datadir }}
       - name: gs-datadir
+      {{- if .Values.persistence.datadir }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/
       {{- end }}
-      {{- if .Values.persistence.memdumps }}
       - name: gs-memdumps
+      {{- if .Values.persistence.memdumps }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-memdumps
       {{- end }}
-      {{- if .Values.persistence.logs }}
       - name: gs-logs
+      {{- if .Values.persistence.logs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-logs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/      
       {{- end }}
-      {{- if .Values.persistence.tomcatlogs }}
       - name: gs-tomcatlogs
+      {{- if .Values.persistence.tomcatlogs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/
       {{- end }}
-      {{- if .Values.persistence.audits }}
       - name: gs-audits
+      {{- if .Values.persistence.audits }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/
       {{- end }}
       - name: context
         secret:
