@@ -261,6 +261,9 @@ spec:
       {{- if .Values.persistence.memdumps }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-memdumps
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/memdumps 
       {{- end }}
       - name: gs-logs
       {{- if .Values.persistence.logs }}
@@ -268,7 +271,7 @@ spec:
           claimName: {{ include "geoserver.fullname" . }}-logs
       {{ else }}
         hostPath:
-          path: /var/geoserver/      
+          path: /var/geoserver/logs      
       {{- end }}
       - name: gs-tomcatlogs
       {{- if .Values.persistence.tomcatlogs }}
@@ -276,7 +279,7 @@ spec:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
       {{ else }}
         hostPath:
-          path: /var/geoserver/
+          path: /var/geoserver/tomcatlogs/
       {{- end }}
       - name: gs-audits
       {{- if .Values.persistence.audits }}
@@ -284,7 +287,7 @@ spec:
           claimName: {{ include "geoserver.fullname" . }}-audits
       {{ else }}
         hostPath:
-          path: /var/geoserver/
+          path: /var/geoserver/audits
       {{- end }}
       - name: context
         secret:
