@@ -73,6 +73,7 @@ kubectl port-forward geoserver-0 8080:8080
 - Possibility to enable or disable [CSRF (Cross-Site Request Forgery)](https://docs.geoserver.org/stable/en/user/security/webadmin/csrf.html)
 - configure tomcat's `Xmx`  maximum Java heap size
 - configure tomcat's `Xms` initial Java heap size.
+- Possibility to populate the `environment.properties` file with custom env vars, to have them available in the GeoServer config
 
 ```yml
 geoserver:
@@ -94,6 +95,12 @@ geoserver:
   geoserver_jai_ext_enabled: "true"
   geoserver_java_mem_xms: "4G"
   geoserver_java_mem_xmx: "4G"
+
+  env_properties: |
+    EXAMPLE_DB_NAME=geoserver
+    EXAMPLE_DB_HOST=localhost
+    EXAMPLE_DB_USER=geoserver
+    EXAMPLE_DB_PASS=geoserver
 ```
 
 ## Notes on specific clouds
