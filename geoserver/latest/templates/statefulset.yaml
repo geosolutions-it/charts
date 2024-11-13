@@ -51,8 +51,10 @@ spec:
             {{- end }}
 
           volumeMounts:
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
             - name: gs-audits
@@ -205,8 +207,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
@@ -260,25 +264,37 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
       {{- end }}
-      {{- if .Values.persistence.memdumps }}
       - name: gs-memdumps
+      {{- if .Values.persistence.memdumps }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-memdumps
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/memdumps 
       {{- end }}
-      {{- if .Values.persistence.logs }}
       - name: gs-logs
+      {{- if .Values.persistence.logs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-logs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/logs      
       {{- end }}
-      {{- if .Values.persistence.tomcatlogs }}
       - name: gs-tomcatlogs
+      {{- if .Values.persistence.tomcatlogs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/tomcatlogs/
       {{- end }}
-      {{- if .Values.persistence.audits }}
       - name: gs-audits
+      {{- if .Values.persistence.audits }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/audits
       {{- end }}
       - name: context
         secret:
