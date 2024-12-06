@@ -27,7 +27,7 @@ kubectl edit configmap/cm-jdbcconfig-init-import
 kubectl edit configmap/cm-jdbcconfig-enabled
 ```
 
-4. Patch the geoserver statefulset to mount the "cm-jdbcconfig-init-import" configmap:
+4. Patch the geoserver statefulset to mount the "cm-jdbcconfig-init-import" configmap and replicaCount is set to 1:
 
 ```sh
 kubectl patch statefulset geoserver --type='json' -p='[
@@ -48,6 +48,11 @@ kubectl patch statefulset geoserver --type='json' -p='[
       "mountPath": "/var/geoserver/datadir/jdbcstore/jdbcstore.properties",
       "subPath": "jdbccfg.properties"
     }
+  },
+    {
+    "op": "replace",
+    "path": "/spec/replicas",
+    "value": 1
   }
 ]'
 ```
