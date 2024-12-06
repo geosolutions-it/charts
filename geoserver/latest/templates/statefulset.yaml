@@ -179,7 +179,7 @@ spec:
             httpGet:
               path: /geoserver/index.html
               port: http
-            failureThreshold: 36
+            failureThreshold: 66
             periodSeconds: 10
           livenessProbe:
             httpGet:
