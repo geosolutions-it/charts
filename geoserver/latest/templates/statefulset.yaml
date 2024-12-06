@@ -271,6 +271,12 @@ spec:
       - name: hazelcast_xml
         configMap:
           name: hazelcast_xml
+      - name: cm-jdbcconfig-init-import
+        configMap:
+          name: cm-jdbcconfig-init-import
+      - name: cm-jdbcconfig-enabled
+        configMap:
+          name: cm-jdbcconfig-enabled
       {{- if .Values.persistence.datadir }}
       - name: gs-datadir
         persistentVolumeClaim:

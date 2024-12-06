@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-jdbcconfig-enabled
+data:
+  jdbccfg.properties: |
+    initdb=false
+    import=false
+    enabled=true
+    username=docker
+    password=docker
+    jdbcUrl=jdbc\:postgresql\://postgis.db.svc.cluster.local\:5432/gis1
+    pool.poolPreparedStatements=false
+    pool.testWhileIdle=false
+    pool.timeBetweenEvictionRunsMillis=-1L
+    pool.validationQuery=SELECT now()
+    pool.minIdle=4
+    ignoreDirs=.git,data,jdbcstore,jdbcconfig,temp,tmp,logs,wps_data,cluster,gwc-layers
+    pool.maxOpenPreparedStatements=50
+    driverClassName=org.postgresql.Driver
+    pool.maxActive=10
+    initScript=jdbcconfig/scripts/initdb.postgres.sql
+    debugMode=false
+    pool.testOnBorrow=true
