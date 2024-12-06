@@ -195,6 +195,12 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            - name: cm-jdbc-initial
+              mountPath: /var/geoserver/datadir/jdbcconfig/jdbcconfig.properties
+              subPath: jdbc.properties
+            - name: cm-jdbc-initial
+              mountPath: /var/geoserver/datadir/jdbcstore/jdbcstore.properties
+              subPath: jdbc.properties
             - name: jdbcconfig-scripts
               mountPath: /var/geoserver/datadir/jdbcconfig/scripts/
             - name: jdbcstore-scripts
@@ -275,12 +281,15 @@ spec:
       - name: hazelcast-xml
         configMap:
           name: hazelcast-xml
-      - name: cm-jdbcconfig-init-import
+      - name: cm-jdbc-initial
         configMap:
-          name: cm-jdbcconfig-init-import
-      - name: cm-jdbcconfig-enabled
+          name: cm-jdbc-initial
+      - name: cm-jdbc-init-import
         configMap:
-          name: cm-jdbcconfig-enabled
+          name: cm-jdbc-init-import
+      - name: cm-jdbc-enabled
+        configMap:
+          name: cm-jdbc-enabled
       - name: jdbcconfig-scripts
         configMap:
           name: jdbcconfig-scripts

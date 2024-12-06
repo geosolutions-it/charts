@@ -15,39 +15,31 @@ geoserver:
 helm install geoserver . --values custom_values.yaml
 ```
 
-2. Edit the configmap "cm-jdbcconfig-init-import" and ensure correct DB string and credentials:
+2. Edit the configmap "cm-jdbc-init-import" and ensure correct DB string and credentials:
 
 ```sh
-kubectl edit configmap/cm-jdbcconfig-init-import
+kubectl edit configmap/cm-jdbc-init-import
 ```
 
-3. Also ensure the same credentials are corrected for "cm-jdbcconfig-enabled":
+3. Also ensure the same credentials are corrected for "cm-jdbc-enabled":
 
 ```sh
-kubectl edit configmap/cm-jdbcconfig-enabled
+kubectl edit configmap/cm-jdbc-enabled
 ```
 
-4. Patch the geoserver statefulset to mount the "cm-jdbcconfig-init-import" configmap and replicaCount is set to 1:
+4. Patch the geoserver statefulset to mount the "cm-jdbc-init-import" configmap and replicaCount is set to 1:
 
 ```sh
 kubectl patch statefulset geoserver --type='json' -p='[
   {
-    "op": "add",
-    "path": "/spec/template/spec/containers/0/volumeMounts/0",
-    "value": {
-      "name": "cm-jdbcconfig-init-import",
-      "mountPath": "/var/geoserver/datadir/jdbcconfig/jdbcconfig.properties",
-      "subPath": "jdbccfg.properties"
-    }
+    "op": "replace",
+    "path": "/spec/template/spec/containers/0/volumeMounts/0/name",
+    "value": "cm-jdbc-init-import"
   },
   {
-    "op": "add",
-    "path": "/spec/template/spec/containers/0/volumeMounts/1",
-    "value": {
-      "name": "cm-jdbcconfig-init-import",
-      "mountPath": "/var/geoserver/datadir/jdbcstore/jdbcstore.properties",
-      "subPath": "jdbccfg.properties"
-    }
+    "op": "replace",
+    "path": "/spec/template/spec/containers/0/volumeMounts/1/name",
+    "value": "cm-jdbc-init-import"
   },
     {
     "op": "replace",
@@ -63,19 +55,19 @@ kubectl patch statefulset geoserver --type='json' -p='[
 kubectl logs -f statefulsets/geoserver
 ```
 
-6. Patch the geoserver statefulset to use the "cm-jdbcconfig-enabled" configmap now:
+6. Patch the geoserver statefulset to use the "cm-jdbc-enabled" configmap now:
 
 ```sh
 kubectl patch statefulset geoserver --type='json' -p='[
   {
     "op": "replace",
     "path": "/spec/template/spec/containers/0/volumeMounts/0/name",
-    "value": "cm-jdbcconfig-enabled"
+    "value": "cm-jdbc-enabled"
   },
   {
     "op": "replace",
     "path": "/spec/template/spec/containers/0/volumeMounts/1/name",
-    "value": "cm-jdbcconfig-enabled"
+    "value": "cm-jdbc-enabled"
   }
 ]'
 ```
