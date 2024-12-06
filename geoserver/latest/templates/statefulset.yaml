@@ -195,6 +195,12 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            - name: cluster_properties
+              mountPath: /var/geoserver/datadir/cluster/cluster.properties
+              subPath: cluster.properties
+            - name: hazelcast_xml
+              mountPath: /var/geoserver/datadir/cluster/hazelcast.xml
+              subPath: hazelcast.xml
             - name: context
               mountPath: /usr/local/tomcat/conf/context.xml
               subPath: context.xml
@@ -259,6 +265,12 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
+      - name: cluster_properties
+        configMap:
+          name: cluster_properties
+      - name: hazelcast_xml
+        configMap:
+          name: hazelcast_xml
       {{- if .Values.persistence.datadir }}
       - name: gs-datadir
         persistentVolumeClaim:

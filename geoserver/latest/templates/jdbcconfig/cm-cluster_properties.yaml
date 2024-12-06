@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster_properties
+data:
+  cluster.properties: |
+    enabled = true
+    sync_method = event
+    sync_delay = 5
+    session_sharing = true
+    session_sticky = false
+    acktimeout = 2000
+    #Disabling the hazelcast shutdown hook
+    shutdown_hook_enable = false
+    #Setting the hazelcast logging type to log4j
+    logging_type = "log4j"
+    logger.com-hazelcast.name = com.hazelcast
+    logger.com-hazelcast.level = ERROR
