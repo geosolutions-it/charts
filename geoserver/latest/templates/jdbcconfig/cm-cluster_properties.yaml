@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cluster.properties
+  name: cluster-properties
 data:
   cluster.properties: |
     enabled = true

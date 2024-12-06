@@ -195,10 +195,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: cluster.properties
+            - name: cluster-properties
               mountPath: /var/geoserver/datadir/cluster/cluster.properties
               subPath: cluster.properties
-            - name: hazelcast.xml
+            - name: hazelcast-xml
               mountPath: /var/geoserver/datadir/cluster/hazelcast.xml
               subPath: hazelcast.xml
             - name: context
@@ -265,12 +265,12 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
-      - name: cluster.properties
+      - name: cluster-properties
         configMap:
-          name: cluster.properties
-      - name: hazelcast.xml
+          name: cluster-properties
+      - name: hazelcast-xml
         configMap:
-          name: hazelcast.xml
+          name: hazelcast-xml
       - name: cm-jdbcconfig-init-import
         configMap:
           name: cm-jdbcconfig-init-import
