@@ -75,3 +75,7 @@ kubectl patch statefulset geoserver --type='json' -p='[
 ```
 
 6. Ensure geoserver is restarted
+
+---
+
+NB: Repeat step 2 and 5 if helm chart is upgraded.
