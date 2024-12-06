@@ -41,7 +41,7 @@ kubectl patch statefulset geoserver --type='json' -p='[
     "path": "/spec/template/spec/containers/0/volumeMounts/1/name",
     "value": "cm-jdbc-init-import"
   },
-    {
+  {
     "op": "replace",
     "path": "/spec/replicas",
     "value": 1
@@ -49,13 +49,13 @@ kubectl patch statefulset geoserver --type='json' -p='[
 ]'
 ```
 
-5. Let this GeoServer run, monitor the logs and wait for import to complete.
+5. Wait for pods to recreate, reinitialise, let this GeoServer run, monitor the logs and wait for import to complete.
 
 ```sh
 kubectl logs -f statefulsets/geoserver
 ```
 
-6. Patch the geoserver statefulset to use the "cm-jdbc-enabled" configmap now:
+6. Patch the geoserver statefulset to use the "cm-jdbc-enabled" configmap and to your desired replica count:
 
 ```sh
 kubectl patch statefulset geoserver --type='json' -p='[
@@ -68,6 +68,11 @@ kubectl patch statefulset geoserver --type='json' -p='[
     "op": "replace",
     "path": "/spec/template/spec/containers/0/volumeMounts/1/name",
     "value": "cm-jdbc-enabled"
+  },
+    {
+    "op": "replace",
+    "path": "/spec/replicas",
+    "value": 2
   }
 ]'
 ```
