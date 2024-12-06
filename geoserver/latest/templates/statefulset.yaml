@@ -195,6 +195,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            - name: jdbcconfig-scripts
+              mountPath: /var/geoserver/datadir/jdbcconfig/scripts/
+            - name: jdbcstore-scripts
+              mountPath: /var/geoserver/datadir/jdbcstore/scripts/
             - name: cluster-properties
               mountPath: /var/geoserver/datadir/cluster/cluster.properties
               subPath: cluster.properties
@@ -277,6 +281,12 @@ spec:
       - name: cm-jdbcconfig-enabled
         configMap:
           name: cm-jdbcconfig-enabled
+      - name: jdbcconfig-scripts
+        configMap:
+          name: jdbcconfig-scripts
+      - name: jdbcstore-scripts
+        configMap:
+          name: jdbcstore-scripts
       {{- if .Values.persistence.datadir }}
       - name: gs-datadir
         persistentVolumeClaim:
