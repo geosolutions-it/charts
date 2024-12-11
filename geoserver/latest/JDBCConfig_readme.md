@@ -4,7 +4,7 @@ Instructions to install GS with the JDBCConfig family of plugins:
 
 1. Install GS with plugins using our helm chart with following custom_values.yaml:
 
-Adjust the version in URL to match the GS version image that you use:
+(Adjust the version in URLs to match the GS version image that you use)
 
 ```yaml
 geoserver:
@@ -23,6 +23,8 @@ kubectl edit configmap/cm-jdbc-enabled
 kubectl edit configmap/cm-jdbcstore-init-import
 kubectl edit configmap/cm-jdbcstore-enabled
 ```
+
+Also edit `kubectl edit configmap/hazelcast-xml` and adjust the namespace of the FQDN string `standalone-hz.default.svc.cluster.local` as necessary. (For example, If you installed this helm chart in a different namespace)
 
 3. Patch the geoserver statefulset to mount the "cm-jdbc-init-import" and "cm-jdbcstore-init-import" configmap and replicaCount is set to 1:
 
@@ -46,7 +48,7 @@ kubectl patch statefulset geoserver --type='json' -p='[
 ]'
 ```
 
-4. Wait for pods to recreate, reinitialise, let this GeoServer run, monitor the logs and wait for import to complete.
+4. At this point, geoserver pod will restart and the jdbcstore import to the DB will take place. Monitor the logs and wait for the process to complete. You can check the DB and see if "objects" and "resources" relations are created in the public namespace.
 
 ```sh
 kubectl logs -f statefulsets/geoserver
