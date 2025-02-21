@@ -59,6 +59,30 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# The below is needed to fix login when replicas >2 (HA)
+ingress_webui:
+  enabled: false # Flip this to "true" when replica >2
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: 'cookie'
+    # cookie path has to be /geoserver so it can match BOTH /geoserver/j_spring_security_check AND /geoserver/web
+    nginx.ingress.kubernetes.io/session-cookie-path: '/geoserver'
+  hosts:
+    - host: geoserver.local
+      paths:
+        - path: /geoserver/web
+          pathType: ImplementationSpecific
+          backend:
+            serviceName: geoserver
+            servicePort: 8080
+    - host: geoserver.local
+      paths:
+        - path: /geoserver/j_spring_security_check
+          pathType: ImplementationSpecific
+          backend:
+            serviceName: geoserver
+            servicePort: 8080
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little

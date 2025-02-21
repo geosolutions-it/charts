@@ -51,8 +51,10 @@ spec:
             {{- end }}
 
           volumeMounts:
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
             - name: gs-audits
@@ -177,7 +179,7 @@ spec:
             httpGet:
               path: /geoserver/index.html
               port: http
-            failureThreshold: 36
+            failureThreshold: 66
             periodSeconds: 10
           livenessProbe:
             httpGet:
@@ -193,6 +195,22 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            - name: cm-jdbc-initial
+              mountPath: /var/geoserver/datadir/jdbcconfig/jdbcconfig.properties
+              subPath: jdbc.properties
+            - name: cm-jdbcstore-initial
+              mountPath: /var/geoserver/datadir/jdbcstore/jdbcstore.properties
+              subPath: jdbc.properties
+            - name: jdbcconfig-scripts
+              mountPath: /var/geoserver/datadir/jdbcconfig/scripts/
+            - name: jdbcstore-scripts
+              mountPath: /var/geoserver/datadir/jdbcstore/scripts/
+            - name: cluster-properties
+              mountPath: /var/geoserver/datadir/cluster/cluster.properties
+              subPath: cluster.properties
+            - name: hazelcast-xml
+              mountPath: /var/geoserver/datadir/cluster/hazelcast.xml
+              subPath: hazelcast.xml
             - name: context
               mountPath: /usr/local/tomcat/conf/context.xml
               subPath: context.xml
@@ -205,8 +223,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            {{- if .Values.persistence.datadir }}
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- end }}
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
@@ -255,30 +275,72 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
+      - name: cluster-properties
+        configMap:
+          name: cluster-properties
+      - name: hazelcast-xml
+        configMap:
+          name: hazelcast-xml
+      - name: cm-jdbc-initial
+        configMap:
+          name: cm-jdbc-initial
+      - name: cm-jdbc-init-import
+        configMap:
+          name: cm-jdbc-init-import
+      - name: cm-jdbc-enabled
+        configMap:
+          name: cm-jdbc-enabled
+      - name: cm-jdbcstore-initial
+        configMap:
+          name: cm-jdbcstore-initial
+      - name: cm-jdbcstore-init-import
+        configMap:
+          name: cm-jdbcstore-init-import
+      - name: cm-jdbcstore-enabled
+        configMap:
+          name: cm-jdbcstore-enabled
+      - name: jdbcconfig-scripts
+        configMap:
+          name: jdbcconfig-scripts
+      - name: jdbcstore-scripts
+        configMap:
+          name: jdbcstore-scripts
       {{- if .Values.persistence.datadir }}
       - name: gs-datadir
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
       {{- end }}
-      {{- if .Values.persistence.memdumps }}
       - name: gs-memdumps
+      {{- if .Values.persistence.memdumps }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-memdumps
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/memdumps 
       {{- end }}
-      {{- if .Values.persistence.logs }}
       - name: gs-logs
+      {{- if .Values.persistence.logs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-logs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/logs      
       {{- end }}
-      {{- if .Values.persistence.tomcatlogs }}
       - name: gs-tomcatlogs
+      {{- if .Values.persistence.tomcatlogs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/tomcatlogs/
       {{- end }}
-      {{- if .Values.persistence.audits }}
       - name: gs-audits
+      {{- if .Values.persistence.audits }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
+      {{ else }}
+        hostPath:
+          path: /var/geoserver/audits
       {{- end }}
       - name: context
         secret:
