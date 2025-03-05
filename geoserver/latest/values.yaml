@@ -105,6 +105,10 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
+  data:
+    accessModes: ReadWriteOnce
+    size: 1Gi
+    storageClass: ""
   memdumps:
     accessModes: ReadWriteOnce
     size: 1Gi
