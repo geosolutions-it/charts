@@ -156,6 +156,8 @@ geoserver:
   geoserver_cors_allowed_headers: "*"
   geoserver_cors_allow_credentials: "false"
 
+  geoserver_extra_opts: >
+
   env_properties: |
     EXAMPLE_DB_NAME=geoserver
     EXAMPLE_DB_HOST=localhost
