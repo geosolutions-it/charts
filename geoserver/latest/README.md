@@ -99,6 +99,8 @@ geoserver:
   geoserver_java_mem_xms: "4G"
   geoserver_java_mem_xmx: "4G"
 
+  geoserver_extra_opts: >
+
   env_properties: |
     EXAMPLE_DB_NAME=geoserver
     EXAMPLE_DB_HOST=localhost
@@ -109,6 +111,7 @@ geoserver:
 #### Description:
 - `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
+- `geoserver_extra_opts`: JVM options that will be appended to the default ones.
 
 ## Notes on specific clouds
 
