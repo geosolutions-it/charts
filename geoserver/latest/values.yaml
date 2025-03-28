@@ -113,6 +113,11 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
+  # Optional WPS JDBC shared Resource Storage Directory
+  # wps:
+  #   accessModes: ReadWriteOnce
+  #   size: 1Gi
+  #   storageClass: ""
   postgis:
     accessModes: ReadWriteOnce
     size: 1Gi

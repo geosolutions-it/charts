@@ -141,3 +141,21 @@ spec:
   storageClassName: {{ .Values.persistence.tomcatlogs.storageClass }}
   {{- end }}
 {{- end }}
+---
+{{- if and .Values.persistence.wps (not .Values.persistence.wps.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-wps
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.wps.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.wps.size | quote }}
+  {{- if .Values.persistence.wps.storageClass }}
+  storageClassName: {{ .Values.persistence.wps.storageClass }}
+  {{- end }}
+{{- end }}

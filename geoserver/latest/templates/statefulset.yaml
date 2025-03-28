@@ -219,6 +219,10 @@ spec:
               mountPath: /var/geoserver/logs
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
+            {{- if .Values.persistence.wps }}
+            - name: gs-wps
+              mountPath: /var/geoserver/wps_exec
+            {{- end }}
         {{- if .Values.postgis.enabled }}
         - name: postgis
           image: {{ .Values.postgis.image }}
@@ -288,6 +292,11 @@ spec:
       - name: gs-audits
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
+      {{- end }}
+      {{- if .Values.persistence.wps }}
+      - name: gs-wps
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-wps
       {{- end }}
       - name: context
         secret:
