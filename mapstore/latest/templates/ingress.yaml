@@ -19,7 +19,7 @@ spec:
     http:
       paths:
       - path: {{ .Values.ingress.path }}
-        pathType: ImplementationSpecific
+        pathType: {{ .Values.ingress.pathType }}
         backend:
           service:
             name: {{ include "mapstore.fullname" . }}
