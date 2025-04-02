@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promote-datadir
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rollout-geoserver-statefulset
+rules:
+  - apiGroups: ["apps"]
+    resources:
+      - statefulsets
+    resourceNames: ["geoserver"]
+    verbs:
+      - get
+      - patch
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: rollout-geoserver-statefulset-promote-datadir
+subjects:
+  - kind: ServiceAccount
+    name: promote-datadir
+roleRef:
+  kind: Role
+  name: rollout-geoserver-statefulset
+  apiGroup: rbac.authorization.k8s.io

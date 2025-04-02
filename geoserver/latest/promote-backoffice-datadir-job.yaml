@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: promote-backoffice-datadir
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: promote-datadir
+      containers:
+      - name: promote
+        image: geosolutionsit/datadir-promotion-job:C321
+        command: ["ash"]
+        args:
+        - -c
+        - |
+          rsync --verbose --recursive --links --perms --times --delete /datadir-backoffice/ /datadir &&
+          kubectl --namespace gis-platform rollout restart statefulset geoserver
+        volumeMounts:
+          - name: gs-datadir
+            mountPath: /datadir
+          - name: gs-datadirbackoffice
+            mountPath: /datadir-backoffice
+      restartPolicy: Never
+      volumes:
+      - name: gs-datadir
+        persistentVolumeClaim:
+          claimName: geoserver-datadir
+      - name: gs-datadirbackoffice
+        persistentVolumeClaim:
+          claimName: geoserver-datadirbackoffice
