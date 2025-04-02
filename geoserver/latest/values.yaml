@@ -181,6 +181,9 @@ geoserver:
     EXAMPLE_DB_USER=geoserver
     EXAMPLE_DB_PASS=geoserver
 
+  env_vars:
+    EXAMPLE_ENV_VAR: ""
+
   context_xml: |
     <Context>
         <!-- Default set of monitored resources -->

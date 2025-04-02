@@ -68,6 +68,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ include "geoserver.fullname" . }}
           env:
             - name: ENV_PROPERTIES
               value: /usr/local/tomcat/conf/environment.properties

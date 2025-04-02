@@ -74,6 +74,7 @@ kubectl port-forward geoserver-0 8080:8080
 - configure tomcat's `Xmx`  maximum Java heap size
 - configure tomcat's `Xms` initial Java heap size.
 - Possibility to populate the `environment.properties` file with custom env vars, to have them available in the GeoServer config
+- Possibility to populate the container environment with custom vars from a Secret, to have them available for GeoServer
 
 Example:
 ```yml
