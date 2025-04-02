@@ -16,6 +16,24 @@ spec:
   {{- end }}
 {{- end }}
 ---
+{{- if and .Values.persistence.datadirbackoffice (not .Values.persistence.datadirbackoffice.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-datadirbackoffice
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.datadirbackoffice.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.datadirbackoffice.size | quote }}
+  {{- if .Values.persistence.datadirbackoffice.storageClass }}
+  storageClassName: {{ .Values.persistence.datadirbackoffice.storageClass }}
+  {{- end }}
+{{- end }}
+---
 {{- if and .Values.persistence.data (not .Values.persistence.data.existingClaim) }}
 kind: PersistentVolumeClaim
 apiVersion: v1

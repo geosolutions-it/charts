@@ -41,12 +41,24 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
+{{- define "geoserver.labelsBackoffice" -}}
+helm.sh/chart: {{ include "geoserver.chart" . }}
+{{ include "geoserver.selectorLabelsBackoffice" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "geoserver.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "geoserver.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+{{- define "geoserver.selectorLabelsBackoffice" -}}
+app.kubernetes.io/name: {{ include "geoserver.name" . }}-backoffice
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 

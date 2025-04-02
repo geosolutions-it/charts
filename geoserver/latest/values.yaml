@@ -54,6 +54,12 @@ ingress:
           backend:
             serviceName: geoserver
             servicePort: 8080
+        # Optional path for the backoffice GeoServer
+        # - path: /geoserver_ui
+        #   pathType: ImplementationSpecific
+        #   backend:
+        #     serviceName: geoserver-backoffice
+        #     servicePort: 8080
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -131,6 +137,11 @@ postgis:
   env:
     database: geoserver
     user: geoserver
+
+backoffice:
+  enabled: false
+  app_location: geoserver_ui
+
 geoserver:
   chown_datadir: true
 
@@ -141,6 +152,7 @@ geoserver:
   # https://docs.geoserver.org/latest/en/user/extensions/monitoring/audit.html
   plugins: ""
   geoserver_proxy_base_url: "${X-Forwarded-Proto}://${X-Forwarded-Host}/geoserver"
+  geoserver_proxy_base_url_backoffice: "${X-Forwarded-Proto}://${X-Forwarded-Host}/geoserver_ui"
   geoserver_log_location: "/var/geoserver/logs/$(POD_HOSTNAME).log"
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
@@ -160,6 +172,8 @@ geoserver:
   geoserver_cors_allow_credentials: "false"
 
   geoserver_extra_opts: >
+
+  geoserver_extra_opts_backoffice: >
 
   env_properties: |
     EXAMPLE_DB_NAME=geoserver
