@@ -55,12 +55,18 @@ spec:
               mountPath: /var/geoserver/datadir
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
+            {{- if .Values.persistence.audits }}
             - name: gs-audits
               mountPath: $(GEOSERVER_AUDIT_PATH)
+            {{- end }}
+            {{- if .Values.persistence.logs }}
             - name: gs-logs
               mountPath: $(GEOSERVER_LOG_LOCATION)
+            {{- end }}
+            {{- if .Values.persistence.tomcatlogs }}
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
+            {{- end }}
           command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
@@ -216,12 +222,18 @@ spec:
               mountPath: /var/geoserver/data
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
+            {{- if .Values.persistence.audits }}
             - name: gs-audits
               mountPath: /var/geoserver/audits
+            {{- end }}
+            {{- if .Values.persistence.logs }}
             - name: gs-logs
               mountPath: /var/geoserver/logs
+            {{- end }}
+            {{- if .Values.persistence.tomcatlogs }}
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
+            {{- end }}
             {{- if .Values.persistence.wps }}
             - name: gs-wps
               mountPath: /var/geoserver/wps_exec
