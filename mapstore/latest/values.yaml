@@ -3,6 +3,7 @@ fullnameOverride: ""
 
 image:
   name: geosolutionsit/mapstore2
+  pullPolicy: IfNotPresent
   tag: latest
 
 imagePullSecrets: []

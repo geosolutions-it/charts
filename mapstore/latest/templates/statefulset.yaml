@@ -22,7 +22,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: '{{ .Values.image.name }}:{{ .Values.image.tag }}'
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS }}
