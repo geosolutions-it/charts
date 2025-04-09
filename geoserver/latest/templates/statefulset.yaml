@@ -61,7 +61,7 @@ spec:
               mountPath: $(GEOSERVER_LOG_LOCATION)
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -146,6 +146,8 @@ spec:
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
+            - name: EXTRA_GEOSERVER_OPTS
+              value: "{{ .Values.geoserver.geoserver_extra_opts }}"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
               value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
@@ -207,6 +209,8 @@ spec:
               readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            - name: gs-data
+              mountPath: /var/geoserver/data
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
@@ -215,6 +219,10 @@ spec:
               mountPath: /var/geoserver/logs
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
+            {{- if .Values.persistence.wps }}
+            - name: gs-wps
+              mountPath: /var/geoserver/wps_exec
+            {{- end }}
         {{- if .Values.postgis.enabled }}
         - name: postgis
           image: {{ .Values.postgis.image }}
@@ -260,6 +268,11 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
       {{- end }}
+      {{- if .Values.persistence.data }}
+      - name: gs-data
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-data
+      {{- end }}
       {{- if .Values.persistence.memdumps }}
       - name: gs-memdumps
         persistentVolumeClaim:
@@ -279,6 +292,11 @@ spec:
       - name: gs-audits
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-audits
+      {{- end }}
+      {{- if .Values.persistence.wps }}
+      - name: gs-wps
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-wps
       {{- end }}
       - name: context
         secret:

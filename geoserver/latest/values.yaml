@@ -97,11 +97,11 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
-  coverages:
+  datadir:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
-  datadir:
+  data:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
@@ -109,6 +109,11 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
+  # Optional WPS JDBC shared Resource Storage Directory
+  # wps:
+  #   accessModes: ReadWriteOnce
+  #   size: 1Gi
+  #   storageClass: ""
   postgis:
     accessModes: ReadWriteOnce
     size: 1Gi
@@ -127,6 +132,8 @@ postgis:
     database: geoserver
     user: geoserver
 geoserver:
+  chown_datadir: true
+
   # space separated list of plugin URLs (see also this possibility below to format such string)
   # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
   #   https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-control-flow-plugin.zip"
@@ -151,6 +158,8 @@ geoserver:
   geoserver_cors_allowed_origins: "*"
   geoserver_cors_allowed_headers: "*"
   geoserver_cors_allow_credentials: "false"
+
+  geoserver_extra_opts: >
 
   env_properties: |
     EXAMPLE_DB_NAME=geoserver
