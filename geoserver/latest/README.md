@@ -106,9 +106,13 @@ geoserver:
     EXAMPLE_DB_HOST=localhost
     EXAMPLE_DB_USER=geoserver
     EXAMPLE_DB_PASS=geoserver
+
+  context_xml: |
+
 ```
 
 #### Description:
+- `context_xml`: pupulate the secret for the Tomcat `context.xml` file.
 - `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
 - `geoserver_extra_opts`: JVM options that will be appended to the default ones.
