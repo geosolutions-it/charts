@@ -97,10 +97,6 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
-  coverages:
-    accessModes: ReadWriteOnce
-    size: 1Gi
-    storageClass: ""
   datadir:
     accessModes: ReadWriteOnce
     size: 1Gi
