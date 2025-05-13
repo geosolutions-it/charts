@@ -88,6 +88,8 @@ spec:
             {{- if .Values.geoserver.geoserver_proxy_base_url }}
             - name: PROXY_BASE_URL
               value: "{{ .Values.geoserver.geoserver_proxy_base_url }}"
+            - name: PROXY_BASE_URL_HEADERS
+              value: "true"
             {{- end }}
             {{- if .Values.geoserver.geoserver_log_location }}
             - name: GEOSERVER_LOG_LOCATION
@@ -145,7 +147,7 @@ spec:
                 \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=\"$(GEOSERVER_CSRF_DISABLED)\"
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
-                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
+                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)' -DPROXY_BASE_URL_HEADERS='$(PROXY_BASE_URL_HEADERS)'"
             - name: EXTRA_GEOSERVER_OPTS
               value: "{{ .Values.geoserver.geoserver_extra_opts }}"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
