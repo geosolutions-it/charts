@@ -2,6 +2,12 @@
 
 ## Helm Chart Installation
 
+### ⚠️ Important
+
+If a persistent volume is deleted, its associated data will also be permanently removed in case **Reclaim Policy** is set to **Delete**.
+
+Ensure that the correct storage class is set in your cluster before deploying.  
+
 ### Admin password change
 
 You can put a custom password at installation time in `values.yaml`, so it is not the default which is `notgeoserver` and it is *different* from war's default that is `geoserver`.
