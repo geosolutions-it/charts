@@ -14,33 +14,318 @@ spec:
       {{- include "geoserver.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/geoserver-env-properties-secret: {{ include (print $.Template.BasePath "/env-properties-secret.yaml") . | sha256sum }}
       labels:
         {{- include "geoserver.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "geoserver.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: init-myservice
+          image: busybox:1.28
+          env:
+            - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            {{- if .Values.geoserver.geoserver_log_location }}
+            - name: GEOSERVER_LOG_LOCATION
+              value: "{{ .Values.geoserver.geoserver_log_location }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_audit_path }}
+            - name: GEOSERVER_AUDIT_PATH
+              value: "{{ .Values.geoserver.geoserver_audit_path }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_heap_dump_dir }}
+            - name: GEOSERVER_HEAP_DUMP_DIR
+              value: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
+            {{- end }}
+
+          volumeMounts:
+            - name: gs-datadir
+              mountPath: /var/geoserver/datadir
+            - name: gs-memdumps
+              mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
+            - name: gs-audits
+              mountPath: $(GEOSERVER_AUDIT_PATH)
+            - name: gs-logs
+              mountPath: $(GEOSERVER_LOG_LOCATION)
+            - name: gs-tomcatlogs
+              mountPath: /usr/local/tomcat/logs
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ENV_PROPERTIES
+              value: /usr/local/tomcat/conf/environment.properties
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "geoserver.fullname" . }}
+                  key: ADMIN_PASSWORD
+                  optional: true
+            - name: POD_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            {{- if .Values.geoserver.plugins }}
+            - name: PLUGIN_DYNAMIC_URLS
+              value: "{{ .Values.geoserver.plugins }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_proxy_base_url }}
+            - name: PROXY_BASE_URL
+              value: "{{ .Values.geoserver.geoserver_proxy_base_url }}"
+            - name: PROXY_BASE_URL_HEADERS
+              value: "true"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_log_location }}
+            - name: GEOSERVER_LOG_LOCATION
+              value: "{{ .Values.geoserver.geoserver_log_location }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_audit_path }}
+            - name: GEOSERVER_AUDIT_PATH
+              value: "{{ .Values.geoserver.geoserver_audit_path }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_heap_dump_dir }}
+            - name: GEOSERVER_HEAP_DUMP_DIR
+              value: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cache_data_dir }}
+            - name: GEOSERVER_DATA_DIR
+              value: "{{ .Values.geoserver.geoserver_data_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cache_config_dir }}
+            - name: GEOWEBCACHE_CONFIG_DIR
+              value: "{{ .Values.geoserver.geoserver_cache_config_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cache_data_dir }}
+            - name: GEOWEBCACHE_CACHE_DIR
+              value: "{{ .Values.geoserver.geoserver_cache_data_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_netcdf_data_dir }}
+            - name: NETCDF_DATA_DIR
+              value: "{{ .Values.geoserver.geoserver_netcdf_data_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_grib_cache_dir }}
+            - name: GRIB_CACHE_DIR
+              value: "{{ .Values.geoserver.geoserver_grib_cache_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_csrf_disabled }}
+            - name: GEOSERVER_CSRF_DISABLED
+              value: "{{ .Values.geoserver.geoserver_csrf_disabled }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_jai_ext_enabled }}
+            - name: JAI_EXT_ENABLED
+              value: "{{ .Values.geoserver.geoserver_jai_ext_enabled }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_java_mem_xms }}
+            - name: JAVA_XMS
+              value: "{{ .Values.geoserver.geoserver_java_mem_xms }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_java_mem_xmx }}
+            - name: JAVA_XMX
+              value: "{{ .Values.geoserver.geoserver_java_mem_xmx }}"
+            {{- end }}
+            - name: JAVA_OPTS
+              value: "-Xms$(JAVA_XMS) -Xmx$(JAVA_XMX) -Djava.awt.headless=true -server -Dfile.encoding=UTF8 \
+                \ -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC
+                \ -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true
+                \ -Dorg.geotools.coverage.jaiext.enabled=\"$(JAI_EXT_ENABLED)\" -DGEOSERVER_LOG_LOCATION=\"$(GEOSERVER_LOG_LOCATION)\" -DGEOWEBCACHE_CONFIG_DIR=\"$(GEOWEBCACHE_CONFIG_DIR)\"
+                \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=\"$(GEOSERVER_CSRF_DISABLED)\"
+                \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
+                \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
+                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)' -DPROXY_BASE_URL_HEADERS='$(PROXY_BASE_URL_HEADERS)'"
+            - name: EXTRA_GEOSERVER_OPTS
+              value: "{{ .Values.geoserver.geoserver_extra_opts }}"
+            {{- if .Values.geoserver.geoserver_cors_enabled }}
+            - name: CORS_ENABLED
+              value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_methods }}
+            - name: CORS_ALLOWED_METHODS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_methods }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_origins }}
+            - name: CORS_ALLOWED_ORIGINS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_origins }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allowed_headers }}
+            - name: CORS_ALLOWED_HEADERS
+              value: "{{ .Values.geoserver.geoserver_cors_allowed_headers }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_cors_allow_credentials }}
+            - name: CORS_ALLOW_CREDENTIALS
+              value: "{{ .Values.geoserver.geoserver_cors_allow_credentials }}"
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
-          invalidResourceField:
-            cpu: "100m"
-            memory: "128Mi"
+            - name: ajp
+              containerPort: 8009
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /geoserver/index.html
+              port: http
+            failureThreshold: 36
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /geoserver/index.html
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /geoserver/index.html
+              port: http
+            successThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: invalid-volume
-              mountPath: /invalid
-              readOnlyRoot: true
-              invalidField: "value"
+            - name: context
+              mountPath: /usr/local/tomcat/conf/context.xml
+              subPath: context.xml
+              readOnly: true
+            - name: env-properties
+              mountPath: /usr/local/tomcat/conf/environment.properties
+              subPath: environment.properties
+              readOnly: true
+            - name: server-xml
+              mountPath: /usr/local/tomcat/conf/server.xml
+              subPath: server.xml
+              readOnly: true
+            - name: gs-datadir
+              mountPath: /var/geoserver/datadir
+            - name: gs-data
+              mountPath: /var/geoserver/data
+            - name: gs-memdumps
+              mountPath: /var/geoserver/memory_dumps
+            - name: gs-audits
+              mountPath: /var/geoserver/audits
+            - name: gs-logs
+              mountPath: /var/geoserver/logs
+            - name: gs-tomcatlogs
+              mountPath: /usr/local/tomcat/logs
+            {{- if .Values.persistence.wps }}
+            - name: gs-wps
+              mountPath: /var/geoserver/wps_exec
+            {{- end }}
+        {{- if .Values.postgis.enabled }}
+        - name: postgis
+          image: {{ .Values.postgis.image }}
+          imagePullPolicy: {{ .Values.postgis.pullPolicy }}
           env:
-            - name: TEST_VAR
-              wrongFrom:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgis.env.database }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgis.env.user }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
                 secretKeyRef:
-                  name: test-secret
-                  key: test-key
+                  name: {{ include "geoserver.fullname" . }}
+                  key: POSTGIS_PASSWORD
+          ports:
+            - name: postgresql
+              containerPort: 5432
+              protocol: TCP
+          startupProbe:
+            tcpSocket:
+              port: postgresql
+            failureThreshold: 12
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: postgresql
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: postgresql
+          resources:
+            {{- toYaml .Values.postgis.resources | nindent 12 }}
+          {{- if .Values.persistence.postgis }}
+          volumeMounts:
+            - name: postgis-persistent
+              mountPath: /var/lib/postgresql
+          {{- end }}
+        {{- end }}
       volumes:
-        - name: invalid-volume
-          invalidVolumeType:
-            path: /tmp
-      invalidPodField: "invalid"
+      {{- if .Values.persistence.datadir }}
+      - name: gs-datadir
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-datadir
+      {{- end }}
+      {{- if .Values.persistence.data }}
+      - name: gs-data
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-data
+      {{- end }}
+      {{- if .Values.persistence.memdumps }}
+      - name: gs-memdumps
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-memdumps
+      {{- end }}
+      {{- if .Values.persistence.logs }}
+      - name: gs-logs
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-logs
+      {{- end }}
+      {{- if .Values.persistence.tomcatlogs }}
+      - name: gs-tomcatlogs
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
+      {{- end }}
+      {{- if .Values.persistence.audits }}
+      - name: gs-audits
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-audits
+      {{- end }}
+      {{- if .Values.persistence.wps }}
+      - name: gs-wps
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-wps
+      {{- end }}
+      - name: context
+        secret:
+          secretName: {{ include "geoserver.fullname" .}}-context
+      - name: env-properties
+        secret:
+          secretName: {{ include "geoserver.fullname" .}}-env-properties
+      - name: server-xml
+        configMap:
+          name: geoserver
+          items:
+            - key: server.xml
+              path: server.xml
+      {{- if .Values.postgis.enabled }}
+      - name: postgis-persistent
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-postgis
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

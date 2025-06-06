@@ -32,38 +32,38 @@ jobs:
         tar -xzf kubeval.tar.gz
         sudo mv kubeval /usr/local/bin/
 
-    - name: Helm Lint - MapStore
-      run: |
-        echo "::group::Linting mapstore/latest"
-        helm lint mapstore/latest
-        echo "::endgroup::"
-
-    - name: Helm Lint - GeoServer
+    - name: GeoServer - Helm Lint
       run: |
         echo "::group::Linting geoserver/latest"
         helm lint geoserver/latest
         echo "::endgroup::"
 
-    - name: Helm Unit Tests - MapStore
-      run: |
-        echo "::group::Unit testing mapstore/latest"
-        helm unittest mapstore/latest
-        echo "::endgroup::"
-
-    - name: Helm Unit Tests - GeoServer
+    - name: GeoServer - Unit Tests
       run: |
         echo "::group::Unit testing geoserver/latest"
         helm unittest geoserver/latest
         echo "::endgroup::"
 
-    - name: Kubeval - MapStore
-      run: |
-        echo "::group::Validating mapstore/latest manifests"
-        helm template mapstore-test mapstore/latest | kubeval --ignore-missing-schemas
-        echo "::endgroup::"
-
-    - name: Kubeval - GeoServer
+    - name: GeoServer - Kubeval
       run: |
         echo "::group::Validating geoserver/latest manifests"
         helm template geoserver-test geoserver/latest | kubeval --ignore-missing-schemas
+        echo "::endgroup::"
+
+    - name: MapStore - Helm Lint
+      run: |
+        echo "::group::Linting mapstore/latest"
+        helm lint mapstore/latest
+        echo "::endgroup::"
+
+    - name: MapStore - Unit Tests
+      run: |
+        echo "::group::Unit testing mapstore/latest"
+        helm unittest mapstore/latest
+        echo "::endgroup::"
+
+    - name: MapStore - Kubeval
+      run: |
+        echo "::group::Validating mapstore/latest manifests"
+        helm template mapstore-test mapstore/latest | kubeval --ignore-missing-schemas
         echo "::endgroup::"
