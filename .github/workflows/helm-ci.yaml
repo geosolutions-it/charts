@@ -66,4 +66,4 @@ jobs:
       run: |
         echo "::group::Validating geoserver/latest manifests"
         helm template geoserver-test geoserver/latest | kubeval --ignore-missing-schemas
-        echo "::endgroup::" 
+        echo "::endgroup::"
