@@ -1,8 +1,6 @@
 name: Helm Chart CI
 
 on:
-  push:
-    branches: feat/ci-checks-for-helm-charts
   pull_request:
     branches: main
 
