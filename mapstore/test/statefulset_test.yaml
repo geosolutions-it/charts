@@ -1,0 +1,44 @@
+suite: test statefulset
+templates:
+  - statefulset.yaml
+tests:
+  - it: should create a statefulset
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-mapstore
+
+  - it: should use correct image
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: geosolutionsit/mapstore2:latest
+
+  - it: should set custom image
+    set:
+      image.name: custom/mapstore
+      image.tag: "2.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: custom/mapstore:2.0.0
+
+  - it: should have correct labels
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: mapstore
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+
+  - it: should have correct ports
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: http
+            containerPort: 80
+            protocol: TCP

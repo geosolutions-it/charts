@@ -1,0 +1,67 @@
+name: Helm Chart CI
+
+on:
+  pull_request:
+    branches: main
+
+env:
+  HELM_VERSION: v3.13.1
+  KUBEVAL_VERSION: 0.16.1
+
+jobs:
+  helm-ci:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Install helm-unittest plugin
+      run: |
+        helm plugin install https://github.com/helm-unittest/helm-unittest
+
+    - name: Install kubeval
+      run: |
+        curl -sSLo kubeval.tar.gz "https://github.com/instrumenta/kubeval/releases/download/v${{ env.KUBEVAL_VERSION }}/kubeval-linux-amd64.tar.gz"
+        tar -xzf kubeval.tar.gz
+        sudo mv kubeval /usr/local/bin/
+
+    - name: GeoServer - Helm Lint
+      run: |
+        echo "::group::Linting geoserver/latest"
+        helm lint geoserver/latest
+        echo "::endgroup::"
+
+    - name: GeoServer - Unit Tests
+      run: |
+        echo "::group::Unit testing geoserver/latest"
+        helm unittest geoserver/latest
+        echo "::endgroup::"
+
+    - name: GeoServer - Kubeval
+      run: |
+        echo "::group::Validating geoserver/latest manifests"
+        helm template geoserver-test geoserver/latest | kubeval --ignore-missing-schemas
+        echo "::endgroup::"
+
+    - name: MapStore - Helm Lint
+      run: |
+        echo "::group::Linting mapstore/latest"
+        helm lint mapstore/latest
+        echo "::endgroup::"
+
+    - name: MapStore - Unit Tests
+      run: |
+        echo "::group::Unit testing mapstore/latest"
+        helm unittest mapstore/latest
+        echo "::endgroup::"
+
+    - name: MapStore - Kubeval
+      run: |
+        echo "::group::Validating mapstore/latest manifests"
+        helm template mapstore-test mapstore/latest | kubeval --ignore-missing-schemas
+        echo "::endgroup::"
