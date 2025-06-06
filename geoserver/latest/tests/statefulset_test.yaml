@@ -27,4 +27,4 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
-          value: geoserver 
+          value: geoserver

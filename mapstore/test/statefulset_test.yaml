@@ -41,4 +41,5 @@ tests:
           content:
             name: http
             containerPort: 80
-            protocol: TCP 
+            protocol: TCP
+ 
