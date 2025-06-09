@@ -20,3 +20,19 @@
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
+
+
+⚠️ ⚠️  NOTICE: You are using the default StorageClass! ⚠️ ⚠️
+
+By default, your PersistentVolumeClaims (PVCs) will use the default storage class,
+which often comes with a **Reclaim Policy: Delete**.
+
+This means:
+- Your PVCs may be deleted when the StatefulSet or Helm release is deleted.
+- Any data stored on those volumes may be permanently lost.
+
+To avoid this:
+- Use a custom StorageClass with `reclaimPolicy: Retain`
+- Or manually back up your data before uninstalling
+
+🔍 Current StorageClass used: {{ .Values.persistence.data.storageClass | default "standard" }}
