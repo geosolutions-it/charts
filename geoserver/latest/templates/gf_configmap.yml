@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: geofence
+  labels:
+    app.kubernetes.io/name: geoserver
+data:
+    geofence-datasource-ovr.properties: |
+        # https://github.com/geoserver/geofence/wiki/GeoFence-configuration#database-configuration-1
+        geofenceVendorAdapter.databasePlatform=org.hibernatespatial.postgis.PostgisDialect
+        geofenceDataSource.driverClassName=org.postgresql.Driver
+        geofenceDataSource.url=jdbc:postgresql://{{ .Values.geofence.psql_host }}:{{ .Values.geofence.psql_port }}/{{ .Values.geofence.psql_database }}
+        geofenceDataSource.username={{ .Values.geofence.psql_user }}
+        geofenceDataSource.password={{ .Values.geofence.psql_password }}
+        geofenceEntityManagerFactory.jpaPropertyMap[hibernate.default_schema]={{ .Values.geofence.psql_schema }}
+
+        # avoid hibernate transaction issues
+        geofenceDataSource.testOnBorrow=true
+        geofenceDataSource.validationQuery=SELECT 1
+        geofenceEntityManagerFactory.jpaPropertyMap[hibernate.testOnBorrow]=true
+        geofenceEntityManagerFactory.jpaPropertyMap[hibernate.validationQuery]=SELECT 1
+
+        # uncomment below line to not auto create schema (default value was 'update').
+        # geofenceEntityManagerFactory.jpaPropertyMap[hibernate.hbm2ddl.auto]=validate

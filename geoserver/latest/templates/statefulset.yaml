@@ -145,7 +145,7 @@ spec:
                 \ -DGEOWEBCACHE_CACHE_DIR=$(GEOWEBCACHE_CACHE_DIR) -DNETCDF_DATA_DIR=$(NETCDF_DATA_DIR) -DGRIB_CACHE_DIR=$(GRIB_CACHE_DIR) -DGEOSERVER_CSRF_DISABLED=\"$(GEOSERVER_CSRF_DISABLED)\"
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
-                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
+                \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)' -Dgwc.context.suffix=gwc" # Remove the -Dgwc.context.suffix=gwc if you don't want to use geofence
             - name: EXTRA_GEOSERVER_OPTS
               value: "{{ .Values.geoserver.geoserver_extra_opts }}"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
@@ -209,6 +209,10 @@ spec:
               readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            - name: geofence-datasource-ovr
+              mountPath: {{ .Values.geoserver.geoserver_data_dir }}/geofence/geofence-datasource-ovr.properties
+              subPath: geofence-datasource-ovr.properties
+              readOnly: true
             - name: gs-data
               mountPath: /var/geoserver/data
             - name: gs-memdumps
@@ -310,6 +314,12 @@ spec:
           items:
             - key: server.xml
               path: server.xml
+      - name: geofence-datasource-ovr
+        configMap:
+          name: geofence
+          items:
+            - key: geofence-datasource-ovr.properties
+              path: geofence-datasource-ovr.properties
       {{- if .Values.postgis.enabled }}
       - name: postgis-persistent
         persistentVolumeClaim:
