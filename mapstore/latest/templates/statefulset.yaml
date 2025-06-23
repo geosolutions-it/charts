@@ -15,6 +15,11 @@ spec:
       labels:
         {{- include "mapstore.selectorLabels" . | nindent 8 }}
     spec:
+      hostAliases:
+      # Hardcoded here. Need to think of a better solution.
+      - ip: "10.136.19.68"
+        hostnames:
+        - "geoserver-dev.corp.fisc.brussels"
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -23,6 +28,7 @@ spec:
         - name: {{ .Chart.Name }}
           image: '{{ .Values.image.name }}:{{ .Values.image.tag }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ['sh', '-c', 'keytool -import -trustcacerts -alias geoserver_ca_cert -file /usr/local/tomcat/conf/certs/custom-root-ca.cer -cacerts -storepass changeit -noprompt && keytool -import -trustcacerts -alias geoserver_issuing -file /usr/local/tomcat/conf/certs/custom-intermediate-ca.cer -cacerts -storepass changeit -noprompt && catalina.sh run']
           env:
             - name: JAVA_OPTS
               value: {{ .Values.env.JAVA_OPTS }}
@@ -39,7 +45,18 @@ spec:
               mountPath: "/config/geostore-datasource-ovr.properties"
               subPath: geostore-datasource-ovr.properties
               readOnly: true
+            - name: custom-ca-cert
+              mountPath: "/usr/local/tomcat/conf/certs/custom-root-ca.cer"
+              subPath: custom-root-ca.cer
+              readOnly: true
+            - name: custom-ca-cert
+              mountPath: "/usr/local/tomcat/conf/certs/custom-intermediate-ca.cer"
+              subPath: custom-intermediate-ca.cer
+              readOnly: true
       volumes:
+        - name: custom-ca-cert
+          secret:
+            secretName: {{ include "mapstore.fullname" . }}-custom-ca-cert
         - name: datadir
           persistentVolumeClaim:
             claimName: {{ include "mapstore.fullname" . }}
