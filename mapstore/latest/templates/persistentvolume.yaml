@@ -10,6 +10,8 @@ spec:
   volumeMode: {{ .Values.persistence.volumeMode }}
   persistentVolumeReclaimPolicy: {{ .Values.persistence.persistentVolumeReclaimPolicy }}
   storageClassName: {{ .Values.persistence.storageClassName }}
+  {{- if .Values.persistence.hostPath }}
   hostPath:
     path: {{ .Values.persistence.hostPath.path  }}
+  {{- end }}
 
