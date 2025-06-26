@@ -22,6 +22,10 @@ spec:
       labels:
         {{- include "geoserver.selectorLabels" . | nindent 8 }}
     spec:
+      hostAliases:
+      - ip: "104.18.12.149"
+        hostnames:
+        - "sourceforge.net"
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
