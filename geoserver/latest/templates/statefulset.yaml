@@ -25,6 +25,7 @@ spec:
       dnsPolicy: None
       dnsConfig:
         nameservers:
+          - 10.0.0.10
           - 8.8.8.8
           - 1.1.1.1
         searches:
