@@ -1,2 +1,1 @@
-# charts
-HELM Charts by GeoSolutions
+# This branch is no longer used.
