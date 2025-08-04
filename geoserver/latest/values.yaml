@@ -166,3 +166,6 @@ geoserver:
     EXAMPLE_DB_HOST=localhost
     EXAMPLE_DB_USER=geoserver
     EXAMPLE_DB_PASS=geoserver
+
+  env_vars:
+    EXAMPLE_ENV_VAR: ""
