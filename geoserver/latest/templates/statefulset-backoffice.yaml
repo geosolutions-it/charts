@@ -189,21 +189,24 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: /{{ .Values.backoffice.app_location }}/index.html
+              path: /{{ .Values.backoffice.app_location }}/styles/raster.sld
               port: http
-            failureThreshold: 36
-            periodSeconds: 10
+            failureThreshold: 180
+            periodSeconds: 2
+          {{- if .Values.backoffice.probes.liveness }}
           livenessProbe:
             httpGet:
-              path: /{{ .Values.backoffice.app_location }}/index.html
+              path: {{ .Values.backoffice.probes.liveness.path }}
               port: http
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+          {{- end }}
           readinessProbe:
             httpGet:
-              path: /{{ .Values.backoffice.app_location }}/index.html
+              path: /{{ .Values.backoffice.app_location }}/styles/raster.sld
               port: http
-            successThreshold: 3
+            successThreshold: 2
           resources:
             {{- toYaml .Values.resources_backoffice | nindent 12 }}
           volumeMounts:

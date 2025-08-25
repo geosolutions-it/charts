@@ -188,21 +188,24 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: /geoserver/styles/raster.sld
               port: http
-            failureThreshold: 36
-            periodSeconds: 10
+            failureThreshold: 180
+            periodSeconds: 2
+          {{- if .Values.geoserver.probes.liveness }}
           livenessProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: {{ .Values.geoserver.probes.liveness.path }}
               port: http
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 3
+          {{- end }}
           readinessProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: /geoserver/styles/raster.sld
               port: http
-            successThreshold: 3
+            successThreshold: 2
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
