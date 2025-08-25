@@ -177,6 +177,8 @@ spec:
             - name: CORS_ALLOW_CREDENTIALS
               value: "{{ .Values.geoserver.geoserver_cors_allow_credentials }}"
             {{- end }}
+            - name: ENTITY_RESOLUTION_ALLOWLIST
+              value: "www.w3.org|schemas.opengis.net|www.opengis.net|inspire.ec.europa.eu/schemas"
           ports:
             - name: http
               containerPort: 8080
