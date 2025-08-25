@@ -22,6 +22,12 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .Values.ingress.finalizers }}
+  finalizers:
+    {{- range . }}
+    - {{ . | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingress.className }}
