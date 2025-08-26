@@ -24,8 +24,10 @@ spec:
           image: '{{ .Values.image.name }}:{{ .Values.image.tag }}'
           imagePullPolicy: Always
           env:
-            - name: JAVA_OPTS
-              value: {{ .Values.env.JAVA_OPTS }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 80
