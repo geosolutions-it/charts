@@ -43,7 +43,13 @@ jobs:
 
     - name: Check changed charts
       run: |
-        ct lint --chart-dirs . --target-branch ${{ github.event.repository.default_branch }} --validate-maintainers=false
+        ct_output=$(ct lint --chart-dirs geoserver/latest,mapstore/latest --target-branch ${{ github.event.repository.default_branch }} --validate-maintainers=false 2>&1)
+        if echo "$ct_output" | grep -q "No chart changes detected"; then
+          echo "[WARNING] No chart changes detected. Please bump the chart version if you made changes to the charts."
+          exit 1
+        else
+          echo "$ct_output"
+        fi
 
     - name: GeoServer - Unit Tests
       run: |
