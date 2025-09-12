@@ -157,7 +157,6 @@ geoserver:
   geoserver_cors_enabled: "false"
   geoserver_cors_allowed_methods: "GET,POST,PUT,HEAD,OPTIONS"
   geoserver_cors_allowed_origins: "*"
-  # geoserver_cors_allowed_headers: "*"
   geoserver_cors_allowed_headers: "accept,accept-language,cache-control,content-type,origin,pragma,priority,referer,user-agent,sec-fetch-dest,sec-fetch-mode,sec-fetch-site,authorization,x-requested-with,access-control-request-headers,access-control-request-method"
   geoserver_cors_allow_credentials: "false"
 
