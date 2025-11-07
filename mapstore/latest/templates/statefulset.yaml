@@ -12,6 +12,8 @@ spec:
       {{- include "mapstore.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/secrets: {{ include (print $.Template.BasePath "/ovr-secret.yaml") . | sha256sum }}
       labels:
         {{- include "mapstore.selectorLabels" . | nindent 8 }}
     spec:
