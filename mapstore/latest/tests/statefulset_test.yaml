@@ -1,8 +1,10 @@
 suite: test statefulset
 templates:
+  - ovr-secret.yaml
   - statefulset.yaml
 tests:
   - it: should create a statefulset
+    template: statefulset.yaml
     asserts:
       - isKind:
           of: StatefulSet
@@ -11,12 +13,14 @@ tests:
           value: RELEASE-NAME-mapstore
 
   - it: should use correct image
+    template: statefulset.yaml
     asserts:
       - equal:
           path: spec.template.spec.containers[0].image
           value: geosolutionsit/mapstore2:latest
 
   - it: should set custom image
+    template: statefulset.yaml
     set:
       image.name: custom/mapstore
       image.tag: "2.0.0"
@@ -26,6 +30,7 @@ tests:
           value: custom/mapstore:2.0.0
 
   - it: should have correct labels
+    template: statefulset.yaml
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
@@ -35,6 +40,7 @@ tests:
           value: RELEASE-NAME
 
   - it: should have correct ports
+    template: statefulset.yaml
     asserts:
       - contains:
           path: spec.template.spec.containers[0].ports
