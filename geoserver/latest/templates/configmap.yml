@@ -1,3 +1,4 @@
+{{- define "geoserver.configmap" -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -175,3 +176,5 @@ data:
         </Engine>
       </Service>
     </Server>
+{{- end -}}
+{{- include "geoserver.configmap" . -}}

@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/secrets: {{ include (print $.Template.BasePath "/ovr-secret.yaml") . | sha256sum }}
+        checksum/secrets: {{ include "mapstore.ovr-secret" . | sha256sum }}
       labels:
         {{- include "mapstore.selectorLabels" . | nindent 8 }}
     spec:
