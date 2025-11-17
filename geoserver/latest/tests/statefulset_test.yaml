@@ -1,5 +1,7 @@
 suite: test statefulset
 templates:
+  - configmap.yml
+  - secrets.yaml
   - env-properties-secret.yaml
   - statefulset.yaml
 tests:
