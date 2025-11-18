@@ -28,7 +28,7 @@ spec:
               value: {{ .Values.env.JAVA_OPTS }}
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
               protocol: TCP
           startupProbe:
             httpGet:
