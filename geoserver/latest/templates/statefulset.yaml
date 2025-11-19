@@ -327,15 +327,15 @@ spec:
           claimName: {{ include "geoserver.fullname" . }}-logs
       {{ else }}
       #hostPath:
-      #path: /var/geoserver/logs      
+      #   path: /var/geoserver/logs      
       {{- end }}
       - name: gs-tomcatlogs
       {{- if .Values.persistence.tomcatlogs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
       {{ else }}
-      #hostPath:
-      #path: /var/geoserver/tomcatlogs/
+        #hostPath:
+        #  path: /var/geoserver/tomcatlogs/
       {{- end }}
       - name: gs-audits
       {{- if .Values.persistence.audits }}
