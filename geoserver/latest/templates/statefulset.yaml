@@ -149,8 +149,6 @@ spec:
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
                 #\ -DALLOW_ENV_PARAMETRIZATION=true"
-            - name: EXTRA_GEOSERVER_OPTS
-              value: "{{ .Values.geoserver.geoserver_extra_opts }}"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
               value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
