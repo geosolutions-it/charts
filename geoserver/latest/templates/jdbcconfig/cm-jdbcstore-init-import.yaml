@@ -7,9 +7,9 @@ data:
     initdb=true
     import=true
     enabled=true
-    username=docker
-    password=docker
-    jdbcUrl=jdbc\:postgresql\://postgis.db.svc.cluster.local\:5432/gis1
+    username={{ .Values.jdbc.username }}
+    password={{ .Values.jdbc.password }}
+    jdbcUrl={{ .Values.jdbc.url }}
     pool.poolPreparedStatements=false
     pool.testWhileIdle=false
     pool.validationQuery=SELECT now()

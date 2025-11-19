@@ -52,7 +52,7 @@ data:
                 <multicast enabled="false"/>
                 <tcp-ip enabled="true">
                 <member-list>
-                    <member>standalone-hz.default.svc.cluster.local</member>
+                    <member>{{ .Values.hazelcast.member }}</member>
                 </member-list>
             </tcp-ip>
             </join>
