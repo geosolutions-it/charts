@@ -198,10 +198,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: cm-jdbc-initial
+            - name: cm-jdbc-enabled
               mountPath: /var/geoserver/datadir/jdbcconfig/jdbcconfig.properties
               subPath: jdbc.properties
-            - name: cm-jdbcstore-initial
+            - name: cm-jdbcstore-enabled
               mountPath: /var/geoserver/datadir/jdbcstore/jdbcstore.properties
               subPath: jdbc.properties
             - name: jdbcconfig-scripts
