@@ -75,8 +75,11 @@ kubectl port-forward geoserver-0 8080:8080
 - configure tomcat's `Xms` initial Java heap size.
 - Possibility to populate the `environment.properties` file with custom env vars, to have them available in the GeoServer config
 
+Example:
 ```yml
 geoserver:
+  chown_datadir: true
+
   # space separated list of plugin URLs (see also this possibility below to format such string)
   # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
   #   https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-control-flow-plugin.zip"
@@ -96,12 +99,23 @@ geoserver:
   geoserver_java_mem_xms: "4G"
   geoserver_java_mem_xmx: "4G"
 
+  geoserver_extra_opts: >
+
   env_properties: |
     EXAMPLE_DB_NAME=geoserver
     EXAMPLE_DB_HOST=localhost
     EXAMPLE_DB_USER=geoserver
     EXAMPLE_DB_PASS=geoserver
+
+  context_xml: |
+
 ```
+
+#### Description:
+- `context_xml`: pupulate the secret for the Tomcat `context.xml` file.
+- `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
+  Disabling this might be desired when particular storage drivers requires to not change the ownership.
+- `geoserver_extra_opts`: JVM options that will be appended to the default ones.
 
 ## Notes on specific clouds
 

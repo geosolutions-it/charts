@@ -63,7 +63,7 @@ spec:
               mountPath: $(GEOSERVER_LOG_LOCATION)
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && chown -R 1000:1000 /var/geoserver']
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -149,6 +149,8 @@ spec:
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
                 #\ -DALLOW_ENV_PARAMETRIZATION=true"
+            - name: EXTRA_GEOSERVER_OPTS
+              value: "{{ .Values.geoserver.geoserver_extra_opts }}"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
               value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
