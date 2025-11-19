@@ -1,18 +1,18 @@
-{{- if and .Values.persistence.datadir (not .Values.persistence.datadir.existingClaim) }}
+{{- if and .Values.persistence.data (not .Values.persistence.data.existingClaim) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ include "geoserver.fullname" . }}-datadir
+  name: {{ include "geoserver.fullname" . }}-data
   labels:
     {{- include "geoserver.labels" . | nindent 4 }}
 spec:
   accessModes:
-    - {{ .Values.persistence.datadir.accessModes }}
+    - {{ .Values.persistence.data.accessModes }}
   resources:
     requests:
-      storage: {{ .Values.persistence.datadir.size | quote }}
-  {{- if .Values.persistence.datadir.storageClass }}
-  storageClassName: {{ .Values.persistence.datadir.storageClass }}
+      storage: {{ .Values.persistence.data.size | quote }}
+  {{- if .Values.persistence.data.storageClass }}
+  storageClassName: {{ .Values.persistence.data.storageClass }}
   {{- end }}
 {{- end }}
 ---

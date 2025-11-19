@@ -51,9 +51,9 @@ spec:
             {{- end }}
 
           volumeMounts:
-            {{- if .Values.persistence.datadir }}
-            - name: gs-datadir
-              mountPath: /var/geoserver/datadir
+            {{- if .Values.persistence.data }}
+            - name: gs-data
+              mountPath: /var/geoserver/data
             {{- end }}
             - name: gs-memdumps
               mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
@@ -148,6 +148,7 @@ spec:
                 \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\"
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)'"
+                #\ -DALLOW_ENV_PARAMETRIZATION=true"
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
               value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
@@ -223,9 +224,9 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
-            {{- if .Values.persistence.datadir }}
-            - name: gs-datadir
-              mountPath: /var/geoserver/datadir
+            {{- if .Values.persistence.data }}
+            - name: gs-data
+              mountPath: /var/geoserver/data
             {{- end }}
             - name: gs-memdumps
               mountPath: /var/geoserver/memory_dumps
@@ -305,10 +306,10 @@ spec:
       - name: jdbcstore-scripts
         configMap:
           name: jdbcstore-scripts
-      {{- if .Values.persistence.datadir }}
-      - name: gs-datadir
+      {{- if .Values.persistence.data }}
+      - name: gs-data
         persistentVolumeClaim:
-          claimName: {{ include "geoserver.fullname" . }}-datadir
+          claimName: {{ include "geoserver.fullname" . }}-data
       {{- end }}
       - name: gs-memdumps
       {{- if .Values.persistence.memdumps }}
@@ -323,16 +324,16 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-logs
       {{ else }}
-        hostPath:
-          path: /var/geoserver/logs      
+      #hostPath:
+      #path: /var/geoserver/logs      
       {{- end }}
       - name: gs-tomcatlogs
       {{- if .Values.persistence.tomcatlogs }}
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
       {{ else }}
-        hostPath:
-          path: /var/geoserver/tomcatlogs/
+      #hostPath:
+      #path: /var/geoserver/tomcatlogs/
       {{- end }}
       - name: gs-audits
       {{- if .Values.persistence.audits }}
