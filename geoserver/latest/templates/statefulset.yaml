@@ -84,6 +84,19 @@ spec:
                   key: ADMIN_PASSWORD
                   {{- end }}
                   optional: true
+            {{- if .Values.postgis.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secrets.postgis_external_secret }}
+                  name: {{ .Values.secrets.postgis_password }}
+                  key: {{ .Values.secrets.postgis_password_key }}
+                  {{- else }}
+                  name: {{ include "geoserver.fullname" . }}
+                  key: POSTGIS_PASSWORD
+                  {{- end }}
+                  optional: true
+            {{- end }}
             - name: POD_HOSTNAME
               valueFrom:
                 fieldRef:
