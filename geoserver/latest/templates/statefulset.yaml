@@ -76,8 +76,13 @@ spec:
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secrets.admin_external_secret }}
+                  name: {{ .Values.secrets.admin_password }}
+                  key: {{ .Values.secrets.admin_password_key }}
+                  {{- else }}
                   name: {{ include "geoserver.fullname" . }}
                   key: ADMIN_PASSWORD
+                  {{- end }}
                   optional: true
             - name: POD_HOSTNAME
               valueFrom:
@@ -239,8 +244,13 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secrets.postgis_external_secret }}
+                  name: {{ .Values.secrets.postgis_password }}
+                  key: {{ .Values.secrets.postgis_password_key }}
+                  {{- else }}
                   name: {{ include "geoserver.fullname" . }}
                   key: POSTGIS_PASSWORD
+                  {{- end }}
           ports:
             - name: postgresql
               containerPort: 5432

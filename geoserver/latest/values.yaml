@@ -121,9 +121,16 @@ persistence:
     storageClass: ""
 
 secrets:
+  master_external_secret: false
   master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD" # Keep this as default if you dont change the key in secrets.yaml
+  postgis_external_secret: false
   postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD" # Keep this as default if you dont change the key in secrets.yaml
+  admin_external_secret: false
   admin_password: "notgeoserver"
+  admin_password_key: "ADMIN_PASSWORD" # Keep this as default if you dont change the key in secrets.yaml
+
 postgis:
   enabled: false
   image: "postgis/postgis:12-3.1"
