@@ -68,6 +68,82 @@ kubectl port-forward geoserver-0 8080:8080
 
 ![Screenshot_20230217_024956](https://user-images.githubusercontent.com/94710364/219696756-c4404c25-6442-41f2-bcc7-7893a32f6123.png)
 
+### Using external Kubernetes Secrets for passwords
+
+The chart supports reading passwords from existing Kubernetes Secrets while preserving the original inline password behavior.
+
+`values.yaml` schema
+```yaml
+secrets:
+  master_external_secret: false  
+  master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+
+  postgis_external_secret: false  
+  postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+
+  admin_external_secret: false    
+  admin_password: "notgeoserver"
+  admin_password_key: "ADMIN_PASSWORD"
+```
+
+For each password (master, postgis, admin):
+
+- `x_external_secret`
+  - false: use the value in `x_password` directly (backward-compatible behavior).
+  - true: read the password from an existing Kubernetes Secret.
+- `x_password`
+  - If `x_external_secret: false`: literal password value.
+  - If `x_external_secret: true`: name of the Kubernetes Secret to use.
+- `x_password_key` (required `x_external_secret: true`)
+  - The key in the Kubernetes Secret’s data field that contains the password.
+
+This ensures full backward compatibility while allowing secure integration with externally managed secrets.
+
+**Example: using an external Kubernetes Secret**
+
+- Create the Kubernetes Secret
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: geoserver-external-secrets
+  namespace: default
+type: Opaque
+data:
+  ADMIN_PASSWORD: dGVzdA==         # "test"
+  POSTGIS_PASSWORD: dGVzdA==       # "test"
+  MASTER_PASSWORD: dGVzdA==        # "test"
+```
+
+- Configure `values.yaml`
+
+```yaml
+secrets:
+  master_external_secret: false  
+  master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+
+  postgis_external_secret: false  
+  postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+
+  admin_external_secret: true    
+  admin_password: "geoserver-external-secrets"  # Secret name
+  admin_password_key: "ADMIN_PASSWORD"
+
+postgis:
+  enabled: true
+  # ...
+```
+
+In this configuration:
+
+- `postgis_external_secret: false`: The PostGIS password is taken from `postgis_password` ("geoserver"), exactly as in the original behavior.
+- `admin_external_secret: true`: The GeoServer admin password is loaded from the Kubernetes Secret `geoserver-external-secrets`, using the key `ADMIN_PASSWORD` (value: dGVzdA==, i.e. "test").
+
 
 ## Notes on GeoServer configuration
 

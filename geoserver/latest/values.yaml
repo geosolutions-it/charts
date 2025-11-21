@@ -121,9 +121,16 @@ persistence:
     storageClass: ""
 
 secrets:
+  master_external_secret: false  # Set true to use existing K8s secret instead of creating one
   master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+  postgis_external_secret: false  # Set true to use existing K8s secret instead of creating one
   postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+  admin_external_secret: false    # Set true to use existing K8s secret instead of creating one
   admin_password: "notgeoserver"
+  admin_password_key: "ADMIN_PASSWORD"
+
 postgis:
   enabled: false
   image: "postgis/postgis:12-3.1"
