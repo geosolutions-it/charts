@@ -88,16 +88,13 @@ secrets:
   admin_password_key: "ADMIN_PASSWORD"
 ```
 
-For each password (master, postgis, admin):
+The secrets (master, postgis, admin) have the same way to use, for example:
 
-- `x_external_secret`
-  - false: use the value in `x_password` directly (backward-compatible behavior).
-  - true: read the password from an existing Kubernetes Secret.
-- `x_password`
-  - If `x_external_secret: false`: literal password value.
-  - If `x_external_secret: true`: name of the Kubernetes Secret to use.
-- `x_password_key` (required `x_external_secret: true`)
-  - The key in the Kubernetes Secret’s data field that contains the password.
+`master_external_secret`:
+
+- If it is `false`: use the value in `master_password` directly.
+- If it is `true`: use the value in `master_password` as the name of existing Kubernetes secret.
+  - In this case, `master_password_key` is the key field in that Kubernetes secret, update if you use a different key,otherwise keep it as default.
 
 This ensures full backward compatibility while allowing secure integration with externally managed secrets.
 
