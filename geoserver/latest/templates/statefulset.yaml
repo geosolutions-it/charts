@@ -224,6 +224,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            - name: server-xml
+              mountPath: /usr/local/tomcat/webapps/geoserver/WEB-INF/classes/applicationContext.xml
+              subPath: applicationContext.xml
+              readOnly: true
             {{- if .Values.persistence.data }}
             - name: gs-data
               mountPath: /var/geoserver/data
@@ -355,6 +359,8 @@ spec:
           items:
             - key: server.xml
               path: server.xml
+            - key: applicationContext.xml
+              path: applicationContext.xml
       {{- if .Values.postgis.enabled }}
       - name: postgis-persistent
         persistentVolumeClaim:
