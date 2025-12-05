@@ -102,6 +102,13 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
+  # Optional GWC cache directory
+  # Uncomment to enable. Mounted at `/var/geoserver/gwc_cache_dir`; remember
+  # to update the `geoserver_cache_data_dir` path.
+  # gwccache:
+  #   accessModes: ReadWriteOnce
+  #   size: 1Gi
+  #   storageClass: ""
   data:
     accessModes: ReadWriteOnce
     size: 1Gi
