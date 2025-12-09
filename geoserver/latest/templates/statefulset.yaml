@@ -109,7 +109,7 @@ spec:
             - name: GEOSERVER_HEAP_DUMP_DIR
               value: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
             {{- end }}
-            {{- if .Values.geoserver.geoserver_cache_data_dir }}
+            {{- if .Values.geoserver.geoserver_data_dir }}
             - name: GEOSERVER_DATA_DIR
               value: "{{ .Values.geoserver.geoserver_data_dir }}"
             {{- end }}
