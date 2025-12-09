@@ -6,6 +6,8 @@ on:
 
 env:
   HELM_VERSION: v3.18.2
+  HELM_S3_BUCKET: geosolutions-charts
+  HELM_S3_REPO: charts
 
 jobs:
   release-charts:
@@ -22,31 +24,54 @@ jobs:
       with:
         version: ${{ env.HELM_VERSION }}
 
-    - name: Login to GHCR
-      run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Package and Push charts to GHCR 
+    - name: Install Helm S3 plugin
       run: |
+        helm plugin install https://github.com/hypnoglow/helm-s3.git
+
+    - name: Package and push charts to S3
+      run: |
+        set -euo pipefail
+
+        repo_name="${HELM_S3_REPO}"
+        repo_url="s3://${HELM_S3_BUCKET}"
+
+        # Initialize Helm repo index in S3 if it does not exist yet
+        if ! aws s3api head-object --bucket "${HELM_S3_BUCKET}" --key "index.yaml" >/dev/null 2>&1; then
+          echo "Initializing Helm repo at ${repo_url}"
+          helm s3 init "$repo_url"
+        fi
+
+        if ! helm repo list | awk '{print $1}' | grep -qx "$repo_name"; then
+          helm repo add "$repo_name" "$repo_url"
+        fi
+
+        helm repo update
+
         for chart_dir in */*/; do
           if [ -f "${chart_dir}Chart.yaml" ]; then
             chart_name=$(grep '^name:' "${chart_dir}Chart.yaml" | awk '{print $2}' | tr -d '"' | tr -d "'")
             chart_version=$(grep '^version:' "${chart_dir}Chart.yaml" | awk '{print $2}' | tr -d '"' | tr -d "'")
             echo "Processing $chart_name:$chart_version"
 
-            if helm pull "oci://ghcr.io/geosolutions-it/charts/$chart_name" --version "$chart_version" --destination /tmp >/dev/null 2>&1; then
-              echo "Chart is already exists, skipping..."
-              rm -f /tmp/${chart_name}-${chart_version}.tgz 2>/dev/null
+            if helm search repo "${repo_name}/${chart_name}" --version "$chart_version" 2>/dev/null | grep -q "${chart_name}"; then
+              echo "Chart already exists in $repo_url, skipping..."
               continue
             fi
-              
-              helm package "$chart_dir"
-              package_file="${chart_name}-${chart_version}.tgz"
-              if [ -f "$package_file" ]; then
-                helm push "$package_file" oci://ghcr.io/geosolutions-it/charts
-                echo "✅ Pushed $chart_name:$chart_version"
-                rm "$package_file"
-              fi
+
+            helm package "$chart_dir"
+            package_file="${chart_name}-${chart_version}.tgz"
+            if [ -f "$package_file" ]; then
+              helm s3 push "$package_file" "$repo_name"
+              echo "✅ Pushed $chart_name:$chart_version to $repo_url"
+              rm "$package_file"
+            fi
           fi
         done
 
