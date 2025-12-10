@@ -8,6 +8,7 @@ env:
   HELM_VERSION: v3.18.2
   HELM_S3_BUCKET: geosolutions-charts
   HELM_S3_REPO: charts
+  S3_STATIC_HOSTING: http://geosolutions-charts.s3-website.eu-west-2.amazonaws.com
 
 jobs:
   release-charts:
@@ -15,6 +16,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      id-token: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -24,12 +26,11 @@ jobs:
       with:
         version: ${{ env.HELM_VERSION }}
 
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials from OIDC
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        role-to-assume: arn:aws:iam::227022658256:role/charts-s3-bucket-role
+        aws-region: eu-west-2
 
     - name: Install Helm S3 plugin
       run: |
@@ -41,6 +42,7 @@ jobs:
 
         repo_name="${HELM_S3_REPO}"
         repo_url="s3://${HELM_S3_BUCKET}"
+        http_url="${S3_STATIC_HOSTING}"
 
         # Initialize Helm repo index in S3 if it does not exist yet
         if ! aws s3api head-object --bucket "${HELM_S3_BUCKET}" --key "index.yaml" >/dev/null 2>&1; then
@@ -75,6 +77,13 @@ jobs:
           fi
         done
 
+        # Fix index.yaml URLs from s3:// to HTTP
+        echo "Converting index.yaml URLs from s3:// to HTTP..."
+        aws s3 cp "s3://${HELM_S3_BUCKET}/index.yaml" /tmp/index.yaml
+        sed -i "s|s3://${HELM_S3_BUCKET}/|${http_url}/|g" /tmp/index.yaml
+        aws s3 cp /tmp/index.yaml "s3://${HELM_S3_BUCKET}/index.yaml"
+        echo "✅ Updated index.yaml with HTTP URLs"
+
     - name: Checkout GitOps Repository
       uses: actions/checkout@v4
       with:
@@ -87,7 +96,9 @@ jobs:
         cd gitops-dev
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        
+
+        repo_url="${S3_STATIC_HOSTING}"
+
         changes_made=false
         for chart_dir in ../*/*/; do
           if [ -f "${chart_dir}Chart.yaml" ]; then
@@ -95,13 +106,14 @@ jobs:
             chart_version=$(grep '^version:' "${chart_dir}Chart.yaml" | awk '{print $2}' | tr -d '"' | tr -d "'")
 
             if [ -d "apps/$chart_name" ]; then
-              current_version=$(grep -A 5 'repoURL: ghcr.io' "apps/$chart_name/application.yaml" | grep 'targetRevision:' | awk '{print $2}' | tr -d '"' | tr -d "'")
+              current_version=$(grep 'targetRevision:' "apps/$chart_name/application.yaml" | head -1 | awk '{print $2}' | tr -d '"' | tr -d "'")
               if [ "$current_version" = "$chart_version" ]; then
                 echo "$chart_name version $chart_version is already deployed, skipping..."
                 continue
-              fi              
-              echo "Updating $chart_name from $current_version to $chart_version in GitOps repository"  
-              sed -i "/repoURL: ghcr.io/,/targetRevision:/ s/targetRevision: .*/targetRevision: $chart_version/" "apps/$chart_name/application.yaml"
+              fi
+              echo "Updating $chart_name from $current_version to $chart_version in GitOps repository"
+              sed -i "0,/targetRevision: .*/s/targetRevision: .*/targetRevision: $chart_version/" "apps/$chart_name/application.yaml"
+              sed -i "0,/repoURL: .*/s|repoURL: .*|repoURL: $repo_url|" "apps/$chart_name/application.yaml"
               git add "apps/$chart_name/application.yaml"
               git commit -m "chore: update $chart_name chart version from $current_version to $chart_version"
               changes_made=true
