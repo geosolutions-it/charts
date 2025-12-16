@@ -26,7 +26,7 @@ charts/
 
 Charts are hosted on AWS S3:
 - **Bucket**: `s3://geosolutions-charts` (eu-west-2)
-- **Public URL**: http://geosolutions-charts.s3-website.eu-west-2.amazonaws.com
+- **Public URL**: https://charts.geosolutionsgroup.com
 - **Authentication**: AWS [OIDC](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws?utm_source=chatgpt.com)
 
 ## Quick Start
@@ -35,7 +35,7 @@ Charts are hosted on AWS S3:
 
 ```bash
 # Add the GeoSolutions chart repository
-helm repo add charts http://geosolutions-charts.s3-website.eu-west-2.amazonaws.com
+helm repo add charts https://charts.geosolutionsgroup.com
 
 # Update your local chart repository cache
 helm repo update
