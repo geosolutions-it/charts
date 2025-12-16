@@ -35,7 +35,7 @@ Charts are hosted on AWS S3:
 
 ```bash
 # Add the GeoSolutions chart repository
-helm repo add charts https://charts.geosolutionsgroup.com
+helm repo add charts https://charts.geosolutionsgroup.com/charts
 
 # Update your local chart repository cache
 helm repo update
