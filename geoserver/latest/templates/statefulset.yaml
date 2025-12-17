@@ -215,6 +215,10 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            - name: logging-properties
+              mountPath: /usr/local/tomcat/conf/logging.properties
+              subPath: logging.properties
+              readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
             {{- if .Values.persistence.gwccache }}
@@ -327,6 +331,12 @@ spec:
           items:
             - key: server.xml
               path: server.xml
+      - name: logging-properties
+        configMap:
+          name: geoserver
+          items:
+            - key: logging.properties
+              path: logging.properties
       {{- if .Values.postgis.enabled }}
       - name: postgis-persistent
         persistentVolumeClaim:
