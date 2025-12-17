@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.2
+
+**Changes**
+
+Prefix Tomcat log files with Pod hostname.
+
+**Commits**
+
+Francesco Camuffo (1):
+      gs: prefix Tomcat log files with Pod hostname
+
 ## 0.2.1
 
 **Changes**
