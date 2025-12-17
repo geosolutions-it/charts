@@ -8,6 +8,7 @@ env:
   HELM_VERSION: v3.18.2
   KUBECONFORM_VERSION: 0.7.0
   PYTHON_VERSION: 3.13
+  HELM_UNITTEST_VERSION: v1.0.3
 
 jobs:
   helm-ci:
@@ -25,7 +26,7 @@ jobs:
 
     - name: Install helm-unittest plugin
       run: |
-        helm plugin install https://github.com/helm-unittest/helm-unittest --version v1.0.3
+        helm plugin install https://github.com/helm-unittest/helm-unittest --version ${{ env.HELM_UNITTEST_VERSION }}
 
     - name: Install kubeconform
       run: |

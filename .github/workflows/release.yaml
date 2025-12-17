@@ -6,6 +6,7 @@ on:
 
 env:
   HELM_VERSION: v3.18.2
+  HELM_S3_VERSION: v0.17.1
   HELM_S3_BUCKET: geosolutions-charts/charts
   HELM_S3_REPO: charts
   PUBLIC_URL: https://charts.geosolutionsgroup.com
@@ -34,7 +35,7 @@ jobs:
 
     - name: Install Helm S3 plugin
       run: |
-        helm plugin install https://github.com/hypnoglow/helm-s3.git
+        helm plugin install https://github.com/hypnoglow/helm-s3.git --version ${{ env.HELM_S3_VERSION }}
 
     - name: Package and push charts to S3
       run: |
