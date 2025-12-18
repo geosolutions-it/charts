@@ -9,7 +9,7 @@ env:
   HELM_S3_VERSION: v0.17.1
   HELM_S3_BUCKET: geosolutions-charts/charts
   HELM_S3_REPO: charts
-  PUBLIC_URL: https://charts.geosolutionsgroup.com
+  CHARTS_URL: https://charts.geosolutionsgroup.com/charts
 
 jobs:
   release-charts:
@@ -43,7 +43,7 @@ jobs:
 
         repo_name="${HELM_S3_REPO}"
         repo_url="s3://${HELM_S3_BUCKET}"
-        http_url="${PUBLIC_URL}"
+        http_url="${CHARTS_URL}"
 
         # Initialize Helm repo index in S3 if it does not exist yet
         if ! aws s3api head-object --bucket "${HELM_S3_BUCKET}" --key "index.yaml" >/dev/null 2>&1; then
@@ -98,7 +98,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-        repo_url="${PUBLIC_URL}"
+        repo_url="${CHARTS_URL}"
 
         changes_made=false
         for chart_dir in ../*/*/; do
