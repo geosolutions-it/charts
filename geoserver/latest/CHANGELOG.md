@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.4
+
+**Changes**
+
+Add a CronJob to prune old logs daily.
+
+**Commits**
+
+Francesco Camuffo (1):
+      gs: add CronJob to prune old logs
+
 ## 0.2.3
 
 **Changes**
