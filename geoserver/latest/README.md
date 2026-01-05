@@ -180,17 +180,27 @@ geoserver:
 
   geoserver_extra_opts: >
 
-  env_properties: |
-    EXAMPLE_DB_NAME=geoserver
-    EXAMPLE_DB_HOST=localhost
-    EXAMPLE_DB_USER=geoserver
-    EXAMPLE_DB_PASS=geoserver
+  # env_properties is a list; each entry uses `name` as the property key.
+  # - external: true to pull the value from an existing Secret
+  # - value: for external=true, this is the Secret name (key defaults to `name`);
+  #          for external=false, this is the cleartext value
+  env_properties:
+    - name: EXAMPLE_DB_NAME
+      value: geoserver
+    - name: EXAMPLE_DB_HOST
+      value: localhost
+    - name: EXAMPLE_DB_USER
+      value: geoserver
+    - name: EXAMPLE_DB_PASS
+      external: true
+      value: geoserver-envprops
 ```
 
 #### Description:
 - `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
 - `geoserver_extra_opts`: JVM options that will be appended to the default ones.
+- `env_properties`: list of entries; set `external: true` to read from an existing Secret named in `value` (secret key defaults to the property `name`), or leave `external` false/omitted to use the cleartext `value`. Rendered into `/usr/local/tomcat/conf/environment.properties`.
 
 ## Notes on specific clouds
 
