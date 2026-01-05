@@ -16,6 +16,24 @@ spec:
   {{- end }}
 {{- end }}
 ---
+{{- if and .Values.persistence.gwccache (not .Values.persistence.gwccache.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "geoserver.fullname" . }}-gwccache
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.gwccache.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.gwccache.size | quote }}
+  {{- if .Values.persistence.gwccache.storageClass }}
+  storageClassName: {{ .Values.persistence.gwccache.storageClass }}
+  {{- end }}
+{{- end }}
+---
 {{- if and .Values.persistence.data (not .Values.persistence.data.existingClaim) }}
 kind: PersistentVolumeClaim
 apiVersion: v1
