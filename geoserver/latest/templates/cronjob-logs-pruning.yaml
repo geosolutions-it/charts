@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "geoserver.fullname" . }}-logs-pruning
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+spec:
+  schedule: '0 1 * * *'
+  jobTemplate:
+    metadata:
+      name: {{ include "geoserver.fullname" . }}-logs-pruning
+    spec:
+      template:
+        metadata: {}
+        spec:
+          restartPolicy: Never
+
+          containers:
+          - name: prune
+            image: busybox:1.37
+            imagePullPolicy: IfNotPresent
+
+            command:
+            - /bin/sh
+            - -eux
+            - -c
+            - |
+              date
+              printf "Pruning log files...\n\n"
+
+              if [ -d /var/geoserver/audits ]; then
+                  find /var/geoserver/audits/ -name '*.log' -type f -mtime +14 -print -delete
+              fi
+
+              if [ -d /usr/local/tomcat/logs ]; then
+                  find /usr/local/tomcat/logs/ -name '*.catalina.*.log' -type f -mtime +14 -print -delete
+                  find /usr/local/tomcat/logs/ -name '*.host-manager.*.log' -type f -mtime +14 -print -delete
+                  find /usr/local/tomcat/logs/ -name '*.localhost.*.log' -type f -mtime +14 -print -delete
+                  find /usr/local/tomcat/logs/ -name '*.localhost_access_log.*.txt' -type f -mtime +14 -print -delete
+                  find /usr/local/tomcat/logs/ -name '*.manager.*.log' -type f -mtime +14 -print -delete
+              fi
+
+            volumeMounts:
+            {{- if .Values.persistence.tomcatlogs }}
+            - name: gs-tomcatlogs
+              mountPath: /usr/local/tomcat/logs
+            {{- end }}
+            {{- if .Values.persistence.audits }}
+            - name: gs-audits
+              mountPath: /var/geoserver/audits
+            {{- end }}
+
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          volumes:
+          {{- if .Values.persistence.tomcatlogs }}
+          - name: gs-tomcatlogs
+            persistentVolumeClaim:
+              claimName: {{ include "geoserver.fullname" . }}-tomcatlogs
+          {{- end }}
+          {{- if .Values.persistence.audits }}
+          - name: gs-audits
+            persistentVolumeClaim:
+              claimName: {{ include "geoserver.fullname" . }}-audits
+          {{- end }}
+
