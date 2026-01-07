@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.5
+
+**Changes**
+
+Logs-pruning CronJob:
+- Prevent multiple jobs to run concurrently.
+- Set the starting deadline to 600 s.
+
+**Commits**
+
+Francesco Camuffo (1):
+      gs: update logs pruning CronJob spec
+
 ## 0.2.4
 
 **Changes**
