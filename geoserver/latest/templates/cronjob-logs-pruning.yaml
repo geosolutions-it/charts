@@ -6,6 +6,8 @@ metadata:
     {{- include "geoserver.labels" . | nindent 4 }}
 spec:
   schedule: '0 1 * * *'
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
   jobTemplate:
     metadata:
       name: {{ include "geoserver.fullname" . }}-logs-pruning
