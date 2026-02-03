@@ -233,18 +233,12 @@ spec:
             {{- end }}
             - name: gs-data
               mountPath: /var/geoserver/data
-            {{- if .Values.geoserver.geoserver_heap_dump_dir }}
             - name: gs-memdumps
-              mountPath: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
-            {{- end }}
-            {{- if .Values.geoserver.geoserver_audit_path }}
+              mountPath: /var/geoserver/memory_dumps
             - name: gs-audits
-              mountPath: "{{ .Values.geoserver.geoserver_audit_path }}"
-            {{- end }}
-            {{- if .Values.geoserver.geoserver_log_location }}
+              mountPath: /var/geoserver/audits
             - name: gs-logs
-              mountPath: "{{ dir .Values.geoserver.geoserver_log_location }}"
-            {{- end }}
+              mountPath: /var/geoserver/logs
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
             {{- if .Values.persistence.wps }}
