@@ -55,12 +55,18 @@ spec:
           volumeMounts:
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- if .Values.geoserver.geoserver_heap_dump_dir }}
             - name: gs-memdumps
-              mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
+              mountPath: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_audit_path }}
             - name: gs-audits
-              mountPath: $(GEOSERVER_AUDIT_PATH)
+              mountPath: "{{ .Values.geoserver.geoserver_audit_path }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_log_location }}
             - name: gs-logs
-              mountPath: $(GEOSERVER_LOG_LOCATION)
+              mountPath: "{{ dir .Values.geoserver.geoserver_log_location }}"
+            {{- end }}
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
           command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
