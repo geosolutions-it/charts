@@ -7,7 +7,8 @@ on:
 env:
   HELM_VERSION: v3.18.2
   HELM_S3_VERSION: v0.17.1
-  HELM_S3_BUCKET: geosolutions-charts/charts
+  HELM_S3_BUCKET: geosolutions-charts
+  HELM_S3_PREFIX: charts
   HELM_S3_REPO: charts
   CHARTS_URL: https://charts.geosolutionsgroup.com/charts
 
@@ -42,11 +43,11 @@ jobs:
         set -euo pipefail
 
         repo_name="${HELM_S3_REPO}"
-        repo_url="s3://${HELM_S3_BUCKET}"
-        http_url="${CHARTS_URL}"
+        repo_url="s3://${HELM_S3_BUCKET}/${HELM_S3_PREFIX}"
+        https_url="${CHARTS_URL}"
 
         # Initialize Helm repo index in S3 if it does not exist yet
-        if ! aws s3api head-object --bucket "${HELM_S3_BUCKET}" --key "index.yaml" >/dev/null 2>&1; then
+        if ! aws s3api head-object --bucket "${HELM_S3_BUCKET}" --key "${HELM_S3_PREFIX}/index.yaml" >/dev/null 2>&1; then
           echo "Initializing Helm repo at ${repo_url}"
           helm s3 init "$repo_url"
         fi
@@ -78,12 +79,12 @@ jobs:
           fi
         done
 
-        # Fix index.yaml URLs from s3:// to HTTP
-        echo "Converting index.yaml URLs from s3:// to HTTP..."
-        aws s3 cp "s3://${HELM_S3_BUCKET}/index.yaml" /tmp/index.yaml
-        sed -i "s|s3://${HELM_S3_BUCKET}/|${http_url}/|g" /tmp/index.yaml
-        aws s3 cp /tmp/index.yaml "s3://${HELM_S3_BUCKET}/index.yaml"
-        echo "✅ Updated index.yaml with HTTP URLs"
+        # Fix index.yaml URLs from s3:// to HTTPS
+        echo "Converting index.yaml URLs from s3:// to HTTPS..."
+        aws s3 cp "$repo_url/index.yaml" /tmp/index.yaml
+        sed -i "s|$repo_url/|${https_url}/|g" /tmp/index.yaml
+        aws s3 cp /tmp/index.yaml "$repo_url/index.yaml"
+        echo "✅ Updated index.yaml with HTTPS URLs"
 
     - name: Checkout GitOps Repository
       uses: actions/checkout@v4
