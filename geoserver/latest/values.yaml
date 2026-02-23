@@ -10,6 +10,14 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+initContainer:
+  image:
+    repository: busybox
+    tag: "1.28"
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -140,7 +148,7 @@ postgis:
     database: geoserver
     user: geoserver
 geoserver:
-  chown_datadir: true
+  chown_datadir: false
 
   # space separated list of plugin URLs (see also this possibility below to format such string)
   # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
