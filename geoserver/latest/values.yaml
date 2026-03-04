@@ -51,11 +51,7 @@ service:
 ingress:
   enabled: false
   className: ""
-  annotations:
-    nginx.ingress.kubernetes.io/server-snippet: |
-      location = / {
-        return 302 /geoserver;
-      }
+  annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   finalizers: []
