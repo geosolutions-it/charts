@@ -46,6 +46,10 @@ ingress:
   # tlsEnabled instructs the ingress to use a certificate from k8s secret. The secret has to the chart name suffixed by -tls. eg: "mapstore-tls"
   tlsEnabled: false
 
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
 persistence:
   enabled: true
   storageClass: ""
