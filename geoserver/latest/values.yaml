@@ -79,6 +79,9 @@ podDisruptionBudget:
   enabled: false
   minAvailable: 1
 
+networkPolicy:
+  enabled: false
+
 nodeSelector: {}
 
 tolerations: []

@@ -50,6 +50,9 @@ podDisruptionBudget:
   enabled: false
   minAvailable: 1
 
+networkPolicy:
+  enabled: false
+
 persistence:
   enabled: true
   storageClass: ""
