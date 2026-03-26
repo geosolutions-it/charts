@@ -29,10 +29,10 @@ podSecurityContext:
   fsGroup: 1000
 
 securityContext:
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
   runAsNonRoot: true
   runAsUser: 1000
 
