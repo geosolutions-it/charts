@@ -119,6 +119,220 @@ geoserver:
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
 - `geoserver_extra_opts`: JVM options that will be appended to the default ones.
 
+### Monitoring and autoscaling
+
+The chart can expose GeoServer request metrics for Prometheus and HPA through the GeoServer monitor and Micrometer plugins.
+
+At a high level, the monitoring path is:
+
+```text
+GeoServer monitor metrics
+-> ServiceMonitor
+-> Prometheus
+-> Prometheus Adapter
+-> Kubernetes custom metrics API
+-> HPA
+```
+
+Example chart values:
+
+```yaml
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: geoserver_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "500m"
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    targetNamespace: geoserver
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /geoserver/rest/monitor/requests/metrics
+    labels:
+      release: kube-prometheus-stack
+    basicAuth:
+      enabled: true
+      createSecret: true
+      existingSecret: geoserver-monitoring-basic-auth
+      username: admin
+
+geoserver:
+  plugins: "https://build.geoserver.org/geoserver/2.28.x/community-latest/geoserver-2.28-SNAPSHOT-monitor-micrometer-plugin.zip \
+            https://sourceforge.net/projects/geoserver/files/GeoServer/2.28.2/extensions/geoserver-2.28.2-monitor-plugin.zip"
+  monitor_properties: |
+    storage=memory
+    mode=history
+    sync=async
+    micrometer.enabled=true
+    micrometer.metric.reset_count=100
+    micrometer.metric.remote_host.enabled=false
+```
+
+The scrape Secret is created in the `ServiceMonitor` namespace, because Prometheus reads Basic Auth credentials from the same namespace as the `ServiceMonitor`.
+
+#### Required cluster components
+
+The chart does not install metrics-server, kube-prometheus-stack, or Prometheus Adapter. Install them separately before using the custom request-rate HPA metric.
+
+The examples below show the minimum settings used for an EKS test setup. Adjust resource requests, limits, chart versions, and security options for your environment.
+
+##### metrics-server
+
+Install metrics-server to enable HPA resource metrics such as memory utilization:
+
+```yaml
+# metrics-server-values.yaml
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: registry.k8s.io
+  repository: metrics-server/metrics-server
+  tag: v0.7.2
+
+command:
+  - /metrics-server
+
+apiService:
+  create: true
+
+extraArgs:
+  - --cert-dir=/tmp
+  - --kubelet-insecure-tls=true
+  - --kubelet-preferred-address-types=InternalIP
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+```
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update bitnami
+
+helm upgrade --install metrics-server bitnami/metrics-server \
+  -n kube-system \
+  -f metrics-server-values.yaml
+```
+
+##### kube-prometheus-stack
+
+Install kube-prometheus-stack to provide Prometheus Operator and the `ServiceMonitor` CRD:
+
+```yaml
+# kube-prometheus-stack-values.yaml
+defaultRules:
+  create: false
+
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+prometheus:
+  prometheusSpec:
+    retention: 2h
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+```
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update prometheus-community
+
+helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+  -n monitoring \
+  --version 72.5.3 \
+  -f kube-prometheus-stack-values.yaml
+```
+
+##### Prometheus Adapter
+
+Install Prometheus Adapter to expose Prometheus data through Kubernetes `custom.metrics.k8s.io`:
+
+```yaml
+# prometheus-adapter-values.yaml
+prometheus:
+  url: http://kube-prometheus-stack-prometheus.monitoring.svc
+  port: 9090
+
+rules:
+  default: false
+  custom:
+    - seriesQuery: '{__name__="requests_total_seconds_count",namespace!="",pod!=""}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        as: "geoserver_requests_per_second"
+      metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)'
+```
+
+```bash
+helm upgrade --install prometheus-adapter prometheus-community/prometheus-adapter \
+  -n monitoring \
+  -f prometheus-adapter-values.yaml
+```
+
+The adapter rule maps GeoServer's Prometheus series `requests_total_seconds_count` into the custom metric `geoserver_requests_per_second`, which is the metric referenced by `autoscaling.metrics`.
+
+#### Validate metrics and HPA
+
+Verify that Prometheus and HPA can see GeoServer metrics:
+
+```bash
+kubectl get hpa -n geoserver geoserver
+kubectl top pods -n geoserver
+kubectl get --raw '/apis/custom.metrics.k8s.io/v1beta1/namespaces/geoserver/pods/*/geoserver_requests_per_second'
+```
+
 ## Notes on specific clouds
 
 ### AWS
