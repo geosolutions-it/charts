@@ -76,8 +76,63 @@ autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 100
+  # Set `metrics` to use custom metrics from prometheus-adapter.
+  # If empty, the chart falls back to CPU / memory resource metrics below.
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: geoserver_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "500m"
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 85
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 120
+      policies:
+        - type: Percent
+          value: 70
+          periodSeconds: 60
   targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage is ignored when autoscaling.metrics is set.
+  # Add memory directly to autoscaling.metrics for dual-signal HPA behavior.
   # targetMemoryUtilizationPercentage: 80
+
+monitoring:
+  serviceMonitor:
+    enabled: false
+    # Create the ServiceMonitor in the monitoring namespace so kube-prometheus-stack
+    # can discover it alongside the Prometheus Operator resources.
+    namespace: "monitoring"
+    targetNamespace: "geoserver"
+    interval: 30s
+    scrapeTimeout: 10s
+    path: /geoserver/rest/monitor/requests/metrics
+    scheme: http
+    labels:
+      release: kube-prometheus-stack
+    annotations: {}
+    basicAuth:
+      enabled: true
+      createSecret: true
+      existingSecret: "geoserver-monitoring-basic-auth"
+      username: admin
+      usernameKey: username
+      passwordKey: password
+    relabelings: []
+    metricRelabelings: []
 
 nodeSelector: {}
 
@@ -174,3 +229,5 @@ geoserver:
     EXAMPLE_DB_HOST=localhost
     EXAMPLE_DB_USER=geoserver
     EXAMPLE_DB_PASS=geoserver
+
+  monitor_properties: ""

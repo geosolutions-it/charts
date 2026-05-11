@@ -1,0 +1,46 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "geoserver.fullname" . }}
+  namespace: {{ default .Release.Namespace .Values.monitoring.serviceMonitor.namespace }}
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.monitoring.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ default .Release.Namespace .Values.monitoring.serviceMonitor.targetNamespace }}
+  selector:
+    matchLabels:
+      {{- include "geoserver.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: {{ .Values.monitoring.serviceMonitor.path }}
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+      scheme: {{ .Values.monitoring.serviceMonitor.scheme }}
+      {{- if and .Values.monitoring.serviceMonitor.basicAuth.enabled .Values.monitoring.serviceMonitor.basicAuth.existingSecret }}
+      basicAuth:
+        username:
+          name: {{ .Values.monitoring.serviceMonitor.basicAuth.existingSecret }}
+          key: {{ .Values.monitoring.serviceMonitor.basicAuth.usernameKey }}
+        password:
+          name: {{ .Values.monitoring.serviceMonitor.basicAuth.existingSecret }}
+          key: {{ .Values.monitoring.serviceMonitor.basicAuth.passwordKey }}
+      {{- end }}
+      {{- with .Values.monitoring.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.monitoring.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

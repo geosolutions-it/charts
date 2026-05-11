@@ -1,0 +1,11 @@
+{{- if .Values.geoserver.monitor_properties }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "geoserver.fullname" . }}-monitor-properties
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+data:
+  monitor.properties: |-
+{{ .Values.geoserver.monitor_properties | indent 4 }}
+{{- end }}

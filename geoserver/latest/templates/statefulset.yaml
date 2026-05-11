@@ -21,6 +21,9 @@ spec:
           {{- toYaml . | nindent 8 }}
         {{- end }}
         checksum/geoserver-env-properties-secret: {{ include (print $.Template.BasePath "/env-properties-secret.yaml") . | sha256sum }}
+        {{- if .Values.geoserver.monitor_properties }}
+        checksum/geoserver-monitor-properties-configmap: {{ include (print $.Template.BasePath "/monitor-properties-configmap.yaml") . | sha256sum }}
+        {{- end }}
       labels:
         {{- include "geoserver.selectorLabels" . | nindent 8 }}
     spec:
@@ -67,7 +70,7 @@ spec:
               mountPath: $(GEOSERVER_LOG_LOCATION)
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME) && mkdir -p /var/geoserver/datadir/monitoring{{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -221,6 +224,12 @@ spec:
               readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- if .Values.geoserver.monitor_properties }}
+            - name: monitor-properties
+              mountPath: /var/geoserver/datadir/monitoring/monitor.properties
+              subPath: monitor.properties
+              readOnly: true
+            {{- end }}
             {{- if .Values.persistence.gwccache }}
             - name: gs-gwccache
               mountPath: /var/geoserver/gwc_cache_dir
@@ -325,6 +334,11 @@ spec:
       - name: env-properties
         secret:
           secretName: {{ include "geoserver.fullname" .}}-env-properties
+      {{- if .Values.geoserver.monitor_properties }}
+      - name: monitor-properties
+        configMap:
+          name: {{ include "geoserver.fullname" . }}-monitor-properties
+      {{- end }}
       - name: server-xml
         configMap:
           name: geoserver
