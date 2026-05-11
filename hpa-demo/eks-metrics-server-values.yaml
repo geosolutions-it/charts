@@ -1,0 +1,27 @@
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: registry.k8s.io
+  repository: metrics-server/metrics-server
+  tag: v0.7.2
+
+command:
+  - /metrics-server
+
+apiService:
+  create: true
+
+extraArgs:
+  - --cert-dir=/tmp
+  - --kubelet-insecure-tls=true
+  - --kubelet-preferred-address-types=InternalIP
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
