@@ -60,6 +60,10 @@ spec:
           volumeMounts:
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- if .Values.persistence.gwccache }}
+            - name: gs-gwccache
+              mountPath: /var/geoserver/gwc_cache_dir
+            {{- end }}
             {{- if .Values.geoserver.geoserver_heap_dump_dir }}
             - name: gs-memdumps
               mountPath: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
@@ -250,8 +254,16 @@ spec:
               mountPath: /usr/local/tomcat/conf/server.xml
               subPath: server.xml
               readOnly: true
+            - name: logging-properties
+              mountPath: /usr/local/tomcat/conf/logging.properties
+              subPath: logging.properties
+              readOnly: true
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            {{- if .Values.persistence.gwccache }}
+            - name: gs-gwccache
+              mountPath: /var/geoserver/gwc_cache_dir
+            {{- end }}
             - name: gs-data
               mountPath: /var/geoserver/data
             - name: gs-memdumps
@@ -316,6 +328,11 @@ spec:
         persistentVolumeClaim:
           claimName: {{ include "geoserver.fullname" . }}-datadir
       {{- end }}
+      {{- if .Values.persistence.gwccache }}
+      - name: gs-gwccache
+        persistentVolumeClaim:
+          claimName: {{ include "geoserver.fullname" . }}-gwccache
+      {{- end }}
       {{- if .Values.persistence.data }}
       - name: gs-data
         persistentVolumeClaim:
@@ -358,6 +375,12 @@ spec:
           items:
             - key: server.xml
               path: server.xml
+      - name: logging-properties
+        configMap:
+          name: geoserver
+          items:
+            - key: logging.properties
+              path: logging.properties
       {{- if .Values.postgis.enabled }}
       - name: postgis-persistent
         persistentVolumeClaim:
