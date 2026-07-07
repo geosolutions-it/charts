@@ -10,6 +10,14 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+initContainer:
+  image:
+    repository: busybox
+    tag: "1.28"
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -41,7 +49,7 @@ service:
   port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -131,9 +139,16 @@ persistence:
     storageClass: ""
 
 secrets:
+  master_external_secret: false  # Set true to use existing K8s secret instead of creating one
   master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+  postgis_external_secret: false  # Set true to use existing K8s secret instead of creating one
   postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+  admin_external_secret: false    # Set true to use existing K8s secret instead of creating one
   admin_password: "notgeoserver"
+  admin_password_key: "ADMIN_PASSWORD"
+
 postgis:
   enabled: false
   image: "postgis/postgis:12-3.1"
@@ -143,7 +158,7 @@ postgis:
     database: geoserver
     user: geoserver
 geoserver:
-  chown_datadir: true
+  chown_datadir: false
 
   # space separated list of plugin URLs (see also this possibility below to format such string)
   # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
@@ -151,7 +166,7 @@ geoserver:
   # to enable audit logging once the pod is deployed go inside the geoserver pod and configure it in the datadir according to doc:
   # https://docs.geoserver.org/latest/en/user/extensions/monitoring/audit.html
   plugins: ""
-  geoserver_proxy_base_url: "${X-Forwarded-Proto}://${X-Forwarded-Host}/geoserver"
+  geoserver_proxy_base_url: "${X-Forwarded-Proto}://${X-Forwarded-Host}/"
   geoserver_log_location: "/var/geoserver/logs/$(POD_HOSTNAME).log"
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
@@ -172,8 +187,4 @@ geoserver:
 
   geoserver_extra_opts: >
 
-  env_properties: |
-    EXAMPLE_DB_NAME=geoserver
-    EXAMPLE_DB_HOST=localhost
-    EXAMPLE_DB_USER=geoserver
-    EXAMPLE_DB_PASS=geoserver
+  env_properties: []

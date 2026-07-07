@@ -33,7 +33,12 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: init-myservice
-          image: busybox:1.28
+          image: "{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          imagePullPolicy: {{ .Values.initContainer.image.pullPolicy }}
+          {{- if .Values.initContainer.securityContext }}
+          securityContext:
+            {{- toYaml .Values.initContainer.securityContext | nindent 12 }}
+          {{- end }}
           env:
             - name: POD_HOSTNAME
               valueFrom:
@@ -59,12 +64,18 @@ spec:
             - name: gs-gwccache
               mountPath: /var/geoserver/gwc_cache_dir
             {{- end }}
+            {{- if .Values.geoserver.geoserver_heap_dump_dir }}
             - name: gs-memdumps
-              mountPath: $(GEOSERVER_HEAP_DUMP_DIR)
+              mountPath: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_audit_path }}
             - name: gs-audits
-              mountPath: $(GEOSERVER_AUDIT_PATH)
+              mountPath: "{{ .Values.geoserver.geoserver_audit_path }}"
+            {{- end }}
+            {{- if .Values.geoserver.geoserver_log_location }}
             - name: gs-logs
-              mountPath: $(GEOSERVER_LOG_LOCATION)
+              mountPath: "{{ dir .Values.geoserver.geoserver_log_location }}"
+            {{- end }}
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
           command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
@@ -74,15 +85,43 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ['/bin/bash', '-c']
+          args:
+            - |
+              sed 's|/"$APP_LOCATION"/|/|g' /usr/local/bin/geoserver-rest-config.sh > /tmp/geoserver-rest-config.sh
+              chmod +x /tmp/geoserver-rest-config.sh
+              sed 's|/usr/local/bin/geoserver-rest-config.sh|/tmp/geoserver-rest-config.sh|g' /entrypoint.sh > /tmp/entrypoint.sh
+              chmod +x /tmp/entrypoint.sh
+              exec /tmp/entrypoint.sh
           env:
+            - name: APP_LOCATION
+              value: "ROOT"
             - name: ENV_PROPERTIES
               value: /usr/local/tomcat/conf/environment.properties
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secrets.admin_external_secret }}
+                  name: {{ .Values.secrets.admin_password }}
+                  key: {{ .Values.secrets.admin_password_key }}
+                  {{- else }}
                   name: {{ include "geoserver.fullname" . }}
                   key: ADMIN_PASSWORD
+                  {{- end }}
                   optional: true
+            {{- if .Values.postgis.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.secrets.postgis_external_secret }}
+                  name: {{ .Values.secrets.postgis_password }}
+                  key: {{ .Values.secrets.postgis_password_key }}
+                  {{- else }}
+                  name: {{ include "geoserver.fullname" . }}
+                  key: POSTGIS_PASSWORD
+                  {{- end }}
+                  optional: true
+            {{- end }}
             - name: POD_HOSTNAME
               valueFrom:
                 fieldRef:
@@ -185,19 +224,19 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: /index.html
               port: http
             failureThreshold: 36
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: /index.html
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /geoserver/index.html
+              path: /index.html
               port: http
             successThreshold: 3
           resources:
@@ -251,8 +290,13 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  {{- if .Values.secrets.postgis_external_secret }}
+                  name: {{ .Values.secrets.postgis_password }}
+                  key: {{ .Values.secrets.postgis_password_key }}
+                  {{- else }}
                   name: {{ include "geoserver.fullname" . }}
                   key: POSTGIS_PASSWORD
+                  {{- end }}
           ports:
             - name: postgresql
               containerPort: 5432

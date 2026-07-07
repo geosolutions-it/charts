@@ -68,6 +68,79 @@ kubectl port-forward geoserver-0 8080:8080
 
 ![Screenshot_20230217_024956](https://user-images.githubusercontent.com/94710364/219696756-c4404c25-6442-41f2-bcc7-7893a32f6123.png)
 
+### Using external Kubernetes Secrets for passwords
+
+The chart supports reading passwords from existing Kubernetes Secrets while preserving the original inline password behavior.
+
+`values.yaml` schema
+```yaml
+secrets:
+  master_external_secret: false  
+  master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+
+  postgis_external_secret: false  
+  postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+
+  admin_external_secret: false    
+  admin_password: "notgeoserver"
+  admin_password_key: "ADMIN_PASSWORD"
+```
+
+The secrets (master, postgis, admin) have the same way to use, for example:
+
+`master_external_secret`:
+
+- If it is `false`: use the value in `master_password` directly.
+- If it is `true`: use the value in `master_password` as the name of existing Kubernetes secret.
+  - In this case, `master_password_key` is the key field in that Kubernetes secret, update if you use a different key,otherwise keep it as default.
+
+This ensures full backward compatibility while allowing secure integration with externally managed secrets.
+
+**Example: using an external Kubernetes Secret**
+
+- Create the Kubernetes Secret
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: geoserver-external-secrets
+  namespace: default
+type: Opaque
+data:
+  ADMIN_PASSWORD: dGVzdA==         # "test"
+  POSTGIS_PASSWORD: dGVzdA==       # "test"
+  MASTER_PASSWORD: dGVzdA==        # "test"
+```
+
+- Configure `values.yaml`
+
+```yaml
+secrets:
+  master_external_secret: false  
+  master_password: "geoserver"
+  master_password_key: "MASTER_PASSWORD"
+
+  postgis_external_secret: false  
+  postgis_password: "geoserver"
+  postgis_password_key: "POSTGIS_PASSWORD"
+
+  admin_external_secret: true    
+  admin_password: "geoserver-external-secrets"  # Secret name
+  admin_password_key: "ADMIN_PASSWORD"
+
+postgis:
+  enabled: true
+  # ...
+```
+
+In this configuration:
+
+- `postgis_external_secret: false`: The PostGIS password is taken from `postgis_password` ("geoserver"), exactly as in the original behavior.
+- `admin_external_secret: true`: The GeoServer admin password is loaded from the Kubernetes Secret `geoserver-external-secrets`, using the key `ADMIN_PASSWORD` (value: dGVzdA==, i.e. "test").
+
 
 ## Notes on GeoServer configuration
 
@@ -107,17 +180,27 @@ geoserver:
 
   geoserver_extra_opts: >
 
-  env_properties: |
-    EXAMPLE_DB_NAME=geoserver
-    EXAMPLE_DB_HOST=localhost
-    EXAMPLE_DB_USER=geoserver
-    EXAMPLE_DB_PASS=geoserver
+  # env_properties is a list; each entry uses `name` as the property key.
+  # - external: true to pull the value from an existing Secret
+  # - value: for external=true, this is the Secret name (key defaults to `name`);
+  #          for external=false, this is the cleartext value
+  env_properties:
+    - name: EXAMPLE_DB_NAME
+      value: geoserver
+    - name: EXAMPLE_DB_HOST
+      value: localhost
+    - name: EXAMPLE_DB_USER
+      value: geoserver
+    - name: EXAMPLE_DB_PASS
+      external: true
+      value: geoserver-envprops
 ```
 
 #### Description:
 - `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
 - `geoserver_extra_opts`: JVM options that will be appended to the default ones.
+- `env_properties`: list of entries; set `external: true` to read from an existing Secret named in `value` (secret key defaults to the property `name`), or leave `external` false/omitted to use the cleartext `value`. Rendered into `/usr/local/tomcat/conf/environment.properties`.
 
 ## Notes on specific clouds
 
