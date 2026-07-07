@@ -1,0 +1,10 @@
+suite: test ingress
+templates:
+  - ingress.yaml
+tests:
+  - it: should route to the service port
+    template: ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 80
