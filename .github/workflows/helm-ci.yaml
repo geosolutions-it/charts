@@ -73,3 +73,122 @@ jobs:
         echo "::group::Validating mapstore/latest manifests"
         helm template mapstore-test mapstore/latest | kubeconform -summary
         echo "::endgroup::"
+
+  geoserver-install-test:
+    runs-on: ubuntu-latest
+    needs: helm-ci
+    timeout-minutes: 30
+    env:
+      RELEASE_NAME: geoserver-ci-test
+      NAMESPACE: geoserver-ci-test-${{ github.event.pull_request.number }}-${{ github.run_id }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v4
+
+    - name: Create kind cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: geoserver-ci
+
+    - name: Create namespace
+      run: |
+        kubectl create namespace "$NAMESPACE"
+
+    - name: Install GeoServer chart
+      run: |
+        helm upgrade --install "$RELEASE_NAME" geoserver/latest \
+          --namespace "$NAMESPACE" \
+          --values ci-values/geoserver.yaml \
+          --atomic \
+          --wait \
+          --timeout 15m
+
+    - name: GeoServer smoke test
+      run: |
+        kubectl run geoserver-smoke \
+          --namespace "$NAMESPACE" \
+          --rm -i \
+          --attach=true \
+          --restart=Never \
+          --image=curlimages/curl:8.10.1 \
+          --command -- curl -fsSL --retry 12 --retry-delay 10 --retry-all-errors \
+          "http://$RELEASE_NAME/index.html"
+
+    - name: Debug GeoServer install failure
+      if: failure()
+      run: |
+        kubectl get all,pvc,events --namespace "$NAMESPACE" || true
+        kubectl logs statefulset/"$RELEASE_NAME" --namespace "$NAMESPACE" --all-containers --tail=200 || true
+
+    - name: Cleanup namespace
+      if: always()
+      run: |
+        kubectl delete namespace "$NAMESPACE" --ignore-not-found
+
+  mapstore-install-test:
+    runs-on: ubuntu-latest
+    needs: helm-ci
+    timeout-minutes: 30
+    env:
+      RELEASE_NAME: mapstore-ci-test
+      NAMESPACE: mapstore-ci-test-${{ github.event.pull_request.number }}-${{ github.run_id }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: ${{ env.HELM_VERSION }}
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v4
+
+    - name: Create kind cluster
+      uses: helm/kind-action@v1
+      with:
+        cluster_name: mapstore-ci
+
+    - name: Create namespace
+      run: |
+        kubectl create namespace "$NAMESPACE"
+
+    - name: Install MapStore chart
+      run: |
+        helm upgrade --install "$RELEASE_NAME" mapstore/latest \
+          --namespace "$NAMESPACE" \
+          --values ci-values/mapstore.yaml \
+          --atomic \
+          --wait \
+          --timeout 15m
+
+    - name: MapStore smoke test
+      run: |
+        kubectl run mapstore-smoke \
+          --namespace "$NAMESPACE" \
+          --rm -i \
+          --attach=true \
+          --restart=Never \
+          --image=curlimages/curl:8.10.1 \
+          --command -- curl -fsSL --retry 12 --retry-delay 10 --retry-all-errors \
+          "http://$RELEASE_NAME/mapstore"
+
+    - name: Debug MapStore install failure
+      if: failure()
+      run: |
+        kubectl get all,pvc,events --namespace "$NAMESPACE" || true
+        kubectl get pv || true
+        kubectl logs statefulset/"$RELEASE_NAME" --namespace "$NAMESPACE" --all-containers --tail=200 || true
+
+    - name: Cleanup namespace
+      if: always()
+      run: |
+        kubectl delete namespace "$NAMESPACE" --ignore-not-found

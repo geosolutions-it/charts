@@ -1,0 +1,19 @@
+geoserver:
+  geoserver_java_mem_xms: "512m"
+  geoserver_java_mem_xmx: "512m"
+
+persistence:
+  audits:
+    size: 512Mi
+  logs:
+    size: 512Mi
+  tomcatlogs:
+    size: 512Mi
+  datadir:
+    size: 512Mi
+  data:
+    size: 512Mi
+  memdumps:
+    size: 512Mi
+  postgis:
+    size: 512Mi
