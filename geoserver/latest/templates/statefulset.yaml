@@ -1,3 +1,7 @@
+{{- $geowebcacheCacheDir := .Values.geoserver.geoserver_cache_data_dir | default "$(GEOSERVER_DATA_DIR)/gwc_cache_dir" -}}
+{{- if and (not .Values.geoserver.geoserver_cache_data_dir) .Values.persistence.gwccache -}}
+{{- $geowebcacheCacheDir = "/var/geoserver/gwc_cache_dir" -}}
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -148,7 +152,7 @@ spec:
             - name: GEOSERVER_HEAP_DUMP_DIR
               value: "{{ .Values.geoserver.geoserver_heap_dump_dir }}"
             {{- end }}
-            {{- if .Values.geoserver.geoserver_cache_data_dir }}
+            {{- if $geowebcacheCacheDir }}
             - name: GEOSERVER_DATA_DIR
               value: "{{ .Values.geoserver.geoserver_data_dir }}"
             {{- end }}
@@ -156,9 +160,9 @@ spec:
             - name: GEOWEBCACHE_CONFIG_DIR
               value: "{{ .Values.geoserver.geoserver_cache_config_dir }}"
             {{- end }}
-            {{- if .Values.geoserver.geoserver_cache_data_dir }}
+            {{- if $geowebcacheCacheDir }}
             - name: GEOWEBCACHE_CACHE_DIR
-              value: "{{ .Values.geoserver.geoserver_cache_data_dir }}"
+              value: "{{ $geowebcacheCacheDir }}"
             {{- end }}
             {{- if .Values.geoserver.geoserver_netcdf_data_dir }}
             - name: NETCDF_DATA_DIR

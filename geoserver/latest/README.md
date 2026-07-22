@@ -169,7 +169,8 @@ geoserver:
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
   geoserver_data_dir: "/var/geoserver/datadir"
-  geoserver_cache_data_dir: "$(GEOSERVER_DATA_DIR)/gwc_cache_dir"
+  # Empty value uses a chart default based on persistence.gwccache.
+  geoserver_cache_data_dir: ""
   geoserver_cache_config_dir: "$(GEOSERVER_DATA_DIR)/gwc"
   geoserver_netcdf_data_dir: "/var/geoserver/netcdf_data_dir"
   geoserver_grib_cache_dir: "/var/geoserver/grib_cache_dir"

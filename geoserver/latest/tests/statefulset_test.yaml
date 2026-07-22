@@ -31,3 +31,60 @@ tests:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
           value: geoserver
+
+  - it: should keep cache data dir under geoserver data dir by default
+    template: statefulset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GEOWEBCACHE_CACHE_DIR
+            value: $(GEOSERVER_DATA_DIR)/gwc_cache_dir
+
+  - it: should point cache data dir to dedicated gwccache volume by default
+    template: statefulset.yaml
+    set:
+      persistence.gwccache.accessModes: ReadWriteOnce
+      persistence.gwccache.size: 1Gi
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GEOWEBCACHE_CACHE_DIR
+            value: /var/geoserver/gwc_cache_dir
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: gs-gwccache
+            mountPath: /var/geoserver/gwc_cache_dir
+
+  - it: should allow overriding cache data dir when gwccache volume is enabled
+    template: statefulset.yaml
+    set:
+      persistence.gwccache.accessModes: ReadWriteOnce
+      persistence.gwccache.size: 1Gi
+      geoserver.geoserver_cache_data_dir: /custom/gwc-cache
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GEOWEBCACHE_CACHE_DIR
+            value: /custom/gwc-cache
+
+  - it: should keep gwccache default independent from custom data dir
+    template: statefulset.yaml
+    set:
+      persistence.gwccache.accessModes: ReadWriteOnce
+      persistence.gwccache.size: 1Gi
+      geoserver.geoserver_data_dir: /custom/geoserver/datadir
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GEOSERVER_DATA_DIR
+            value: /custom/geoserver/datadir
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: GEOWEBCACHE_CACHE_DIR
+            value: /var/geoserver/gwc_cache_dir
