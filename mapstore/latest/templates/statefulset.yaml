@@ -32,20 +32,22 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: /mapstore/
+              path: /mapstore/configs/localConfig.json
               port: http
-            failureThreshold: 136
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            failureThreshold: 30
+            periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /mapstore/
+              path: /mapstore/configs/localConfig.json
               port: http
-            initialDelaySeconds: 5
+            failureThreshold: 1
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /mapstore/
+              path: /mapstore/rest/geostore/resources/resource/{{ required "A valid probe resource ID is required. Configure a resource in mapstore, find and set its ID in values file as readinessProbeResourceId" .Values.readinessProbeResourceId }}
               port: http
+            periodSeconds: 10
             successThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
