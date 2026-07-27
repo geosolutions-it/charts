@@ -76,6 +76,9 @@ data:
         -->
         <Connector port="8080" protocol="HTTP/1.1"
                    connectionTimeout="20000"
+                   {{- if .Values.tomcat.httpConnector.maxHttpHeaderSize }}
+                   maxHttpHeaderSize="{{ .Values.tomcat.httpConnector.maxHttpHeaderSize }}"
+                   {{- end }}
                    redirectPort="8443" />
         <!-- A "Connector" using the shared thread pool-->
         <!--

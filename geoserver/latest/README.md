@@ -73,9 +73,16 @@ kubectl port-forward geoserver-0 8080:8080
 - Possibility to enable or disable [CSRF (Cross-Site Request Forgery)](https://docs.geoserver.org/stable/en/user/security/webadmin/csrf.html)
 - configure tomcat's `Xmx`  maximum Java heap size
 - configure tomcat's `Xms` initial Java heap size.
+- configure Tomcat HTTP Connector maximum header size.
 - Possibility to populate the `environment.properties` file with custom env vars, to have them available in the GeoServer config
 
 ```yml
+tomcat:
+  httpConnector:
+    # Maximum size in bytes for HTTP request and response headers.
+    # Leave empty to use Tomcat's default.
+    maxHttpHeaderSize: 65536
+
 geoserver:
   # space separated list of plugin URLs (see also this possibility below to format such string)
   # plugins: "https://sourceforge.net/projects/geoserver/files/GeoServer/2.20.4/extensions/geoserver-2.20.4-monitor-plugin.zip \
