@@ -188,7 +188,7 @@ spec:
             - name: JAVA_XMX
               value: "{{ .Values.geoserver.geoserver_java_mem_xmx }}"
             {{- end }}
-            - name: JAVA_OPTS
+            - name: CATALINA_OPTS
               value: "-Xms$(JAVA_XMS) -Xmx$(JAVA_XMX) -Djava.awt.headless=true -server -Dfile.encoding=UTF8 \
                 \ -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -XX:SoftRefLRUPolicyMSPerMB=36000 -XX:+UseG1GC
                 \ -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Duser.timezone=UTC -Dorg.geotools.shapefile.datetime=true
