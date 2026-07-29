@@ -127,9 +127,9 @@ postgis:
     database: geoserver
     user: geoserver
 
-# tomcat:
-#   httpConnector:
-#     maxHttpHeaderSize: "10000"
+tomcat:
+  httpConnector:
+    maxHttpHeaderSize: "10000"
 
 geoserver:
   # space separated list of plugin URLs (see also this possibility below to format such string)
