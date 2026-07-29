@@ -127,9 +127,9 @@ postgis:
     database: geoserver
     user: geoserver
 
-tomcat:
-  httpConnector:
-    maxHttpHeaderSize: ""
+# tomcat:
+#   httpConnector:
+#     maxHttpHeaderSize: "10000"
 
 geoserver:
   # space separated list of plugin URLs (see also this possibility below to format such string)
@@ -156,5 +156,3 @@ geoserver:
   geoserver_cors_allowed_origins: "*"
   geoserver_cors_allowed_headers: "*"
   geoserver_cors_allow_credentials: "false"
-
-  env_properties: ""
