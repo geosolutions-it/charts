@@ -153,6 +153,11 @@ postgis:
   env:
     database: geoserver
     user: geoserver
+
+tomcat:
+  httpConnector:
+    maxHttpHeaderSize: ""
+
 geoserver:
   chown_datadir: false
 

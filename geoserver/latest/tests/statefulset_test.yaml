@@ -32,6 +32,22 @@ tests:
           path: metadata.labels["app.kubernetes.io/name"]
           value: geoserver
 
+  - it: should not set Tomcat max HTTP header size by default
+    template: configmap.yml
+    asserts:
+      - notMatchRegex:
+          path: data["server.xml"]
+          pattern: 'maxHttpHeaderSize='
+
+  - it: should set Tomcat max HTTP header size
+    template: configmap.yml
+    set:
+      tomcat.httpConnector.maxHttpHeaderSize: 65536
+    asserts:
+      - matchRegex:
+          path: data["server.xml"]
+          pattern: 'maxHttpHeaderSize="65536"'
+
   - it: should keep cache data dir under geoserver data dir by default
     template: statefulset.yaml
     asserts:
