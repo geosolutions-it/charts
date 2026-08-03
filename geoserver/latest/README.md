@@ -160,7 +160,7 @@ Example:
 tomcat:
   httpConnector:
     # Maximum size in bytes for HTTP request and response headers.
-    # Leave empty to use Tomcat's default.
+    # Leave empty to omit the attribute from server.xml.
     maxHttpHeaderSize: 65536
 
 geoserver:
@@ -207,7 +207,7 @@ geoserver:
 #### Description:
 - `chown_datadir`: toggle running `chown` to the `tomcat` UID/GID on the GeoServer data\_dir.  
   Disabling this might be desired when particular storage drivers requires to not change the ownership.
-- `tomcat.httpConnector.maxHttpHeaderSize`: optional Tomcat HTTP Connector `maxHttpHeaderSize` value in bytes. This sets Tomcat's default maximum size for both request and response headers. For example, use `65536` for 64 KiB.
+- `tomcat.httpConnector.maxHttpHeaderSize`: optional Tomcat HTTP Connector `maxHttpHeaderSize` value in bytes. When set, this value is applied to both request and response header size limits unless the more specific Tomcat connector attributes are configured separately. For example, use `65536` for 64 KiB.
 - `geoserver_extra_opts`: JVM options that will be appended to the default ones.
 - `env_properties`: list of entries; set `external: true` to read from an existing Secret named in `value` (secret key defaults to the property `name`), or leave `external` false/omitted to use the cleartext `value`. Rendered into `/usr/local/tomcat/conf/environment.properties`.
 
