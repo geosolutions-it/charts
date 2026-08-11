@@ -120,27 +120,29 @@ tests:
               \ -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=$(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME).hprof -DGEOSERVER_DATA_DIR=\"$(GEOSERVER_DATA_DIR)\" \
               \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\" \
               \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)' -DPROXY_BASE_URL_HEADERS='$(PROXY_BASE_URL_HEADERS)'"
+      # Verify HELM_CATALINA_OPTS loop runs before CATALINA_OPTS loop to enforce Helm option precedence
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
-          pattern: 'for opt in \$\{HELM_CATALINA_OPTS\}; do'
-      - matchRegex:
-          path: spec.template.spec.containers[0].args[0]
-          pattern: 'for opt in \$\{CATALINA_OPTS\}; do'
+          pattern: 'for opt in \$\{HELM_CATALINA_OPTS\}; do[\s\S]*helm_keys="\$helm_keys \$key"[\s\S]*for opt in \$\{CATALINA_OPTS\}; do'
+      # Verify explicit pattern matching for memory options (-Xms, -Xmx)
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: '-Xms\*\) key="-Xms"'
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: '-Xmx\*\) key="-Xmx"'
+      # Verify pattern stripping for key-value options (-XX:, -D)
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: '-XX:\*\) key="\$\{opt%%=\*\}"'
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: '-D\*\)   key="\$\{opt%%=\*\}"'
+      # Verify debug logging statement for overridden image options
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: 'echo "\[INFO\] Helm chart overridden CATALINA_OPTS value for '
+      # Verify final export of combined CATALINA_OPTS
       - matchRegex:
           path: spec.template.spec.containers[0].args[0]
           pattern: 'export CATALINA_OPTS="\$\{combined_opts# \}"'
