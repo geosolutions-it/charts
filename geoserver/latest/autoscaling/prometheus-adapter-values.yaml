@@ -1,0 +1,37 @@
+prometheus:
+  url: http://kube-prometheus-stack-prometheus.monitoring.svc
+  port: 9090
+
+metricsRelistInterval: 30s
+extraArguments:
+  - --metrics-max-age=2m
+
+rules:
+  default: false
+  custom:
+    - seriesQuery: 'requests_total_seconds_count{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: ^requests_total_seconds_count$
+        as: geoserver_requests_total_per_second
+      metricsQuery: >-
+        sum by (<<.GroupBy>>) (
+          rate(<<.Series>>{<<.LabelMatchers>>,namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""}[2m])
+          and on (cluster,namespace,pod,job,instance)
+          (up{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""} == 1)
+        )
+  external: []
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+logLevel: 4

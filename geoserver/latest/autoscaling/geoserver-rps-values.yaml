@@ -1,0 +1,50 @@
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: geoserver_requests_total_per_second
+        target:
+          type: AverageValue
+          # RPS per pod: "1" = 1 RPS; "500m" = 0.5 RPS
+          averageValue: "1"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    #  Use default GeoServer release namespace if empty
+    targetNamespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      #  ServiceMonitor selector of Prometheus
+      release: kube-prometheus-stack
+    basicAuth:
+      enabled: true
+      # Set to false if using external secret
+
+geoserver:
+  monitor_properties: |
+    storage=memory
+    mode=history
+    sync=async
+    micrometer.enabled=true
+    micrometer.metric.reset_count=2147483647
+    micrometer.metric.remote_host.enabled=false
