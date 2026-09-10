@@ -133,7 +133,7 @@ metadata:
     {{- include "geoserver.labels" . | nindent 4 }}
 spec:
   accessModes:
-    - {{ .Values.persistence.logs.accessModes }}
+    - {{ .Values.persistence.tomcatlogs.accessModes }}
   resources:
     requests:
       storage: {{ .Values.persistence.tomcatlogs.size | quote }}
