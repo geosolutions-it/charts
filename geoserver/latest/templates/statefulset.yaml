@@ -1,3 +1,4 @@
+{{- $jmx := .Values.jvmMetrics | default dict -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -15,6 +16,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if $jmx.enabled }}
+        checksum/jmx-exporter: {{ include (print $.Template.BasePath "/jmx-configmap.yaml") . | sha256sum }}
+        {{- end }}
         checksum/config: {{ include "geoserver.configmap" . | sha256sum }}
         checksum/secrets: {{ include "geoserver.secrets" . | sha256sum }}
         {{- with .Values.podAnnotations }}
@@ -35,6 +39,32 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
+        {{- if $jmx.enabled }}
+        - name: download-jmx-exporter
+          image: {{ $jmx.agent.downloadImage | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          env:
+            - name: AGENT_URL
+              value: {{ required "jvmMetrics.agent.url is required" $jmx.agent.url | quote }}
+            - name: AGENT_SHA256
+              value: {{ required "jvmMetrics.agent.sha256 is required" $jmx.agent.sha256 | quote }}
+          command: [sh, -ec]
+          args:
+            - |
+              curl --fail --location --silent --show-error --retry 2 --connect-timeout 10 --max-time 90 \
+                "$AGENT_URL" -o /jmx/jmx_prometheus_javaagent.jar
+              printf '%s  %s\n' "$AGENT_SHA256" /jmx/jmx_prometheus_javaagent.jar | sha256sum -c -
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          volumeMounts:
+            - name: jmx-agent
+              mountPath: /jmx
+        {{- end }}
         - name: init-myservice
           image: busybox:1.28
           env:
@@ -158,7 +188,11 @@ spec:
                 \ -DGEOSERVER_AUDIT_PATH=\"$(GEOSERVER_AUDIT_PATH)\" -Dpod.hostname=\"$(POD_HOSTNAME)\"
                 \ -DALLOW_ENV_PARAMETRIZATION=true -DPROXY_BASE_URL='$(PROXY_BASE_URL)' -DPROXY_BASE_URL_HEADERS='$(PROXY_BASE_URL_HEADERS)'"
             - name: EXTRA_GEOSERVER_OPTS
-              value: "{{ .Values.geoserver.geoserver_extra_opts }}"
+              {{- if $jmx.enabled }}
+              value: {{ printf "%s -javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=%v:/etc/jmx/config.yaml" (default "" .Values.geoserver.geoserver_extra_opts) $jmx.port | trim | quote }}
+              {{- else }}
+              value: {{ .Values.geoserver.geoserver_extra_opts | default "" | quote }}
+              {{- end }}
             {{- if .Values.geoserver.geoserver_cors_enabled }}
             - name: CORS_ENABLED
               value: "{{ .Values.geoserver.geoserver_cors_enabled }}"
@@ -180,6 +214,11 @@ spec:
               value: "{{ .Values.geoserver.geoserver_cors_allow_credentials }}"
             {{- end }}
           ports:
+            {{- if $jmx.enabled }}
+            - name: jmx-metrics
+              containerPort: {{ $jmx.port }}
+              protocol: TCP
+            {{- end }}
             - name: http
               containerPort: 8080
               protocol: TCP
@@ -206,6 +245,14 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+            {{- if $jmx.enabled }}
+            - name: jmx-agent
+              mountPath: /opt/jmx
+              readOnly: true
+            - name: jmx-config
+              mountPath: /etc/jmx
+              readOnly: true
+            {{- end }}
             - name: context
               mountPath: /usr/local/tomcat/conf/context.xml
               subPath: context.xml
@@ -288,6 +335,13 @@ spec:
           {{- end }}
         {{- end }}
       volumes:
+      {{- if $jmx.enabled }}
+      - name: jmx-agent
+        emptyDir: {}
+      - name: jmx-config
+        configMap:
+          name: {{ include "geoserver.fullname" . }}-jmx-config
+      {{- end }}
       {{- if .Values.persistence.datadir }}
       - name: gs-datadir
         persistentVolumeClaim:

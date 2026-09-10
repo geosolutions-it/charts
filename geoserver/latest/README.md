@@ -52,6 +52,10 @@ Should give you the IP address at which you can contact GeoServer as shown below
 ![image](https://user-images.githubusercontent.com/5264230/220570461-76b451ac-7b50-4320-a182-8a765ae2fbef.png)
 
 
+### Autoscaling
+
+To enable RPS or RPS + JVM heap autoscaling on an existing release, follow the [autoscaling guide](autoscaling/README.md).
+
 ### Testing
 
 For a quick test create a Port Forward to the GeoServer Pod

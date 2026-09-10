@@ -1,0 +1,25 @@
+{{- $jmx := .Values.jvmMetrics | default dict -}}
+{{- if and $jmx.enabled $jmx.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "geoserver.fullname" . }}-jmx
+  namespace: {{ default .Release.Namespace $jmx.serviceMonitor.namespace }}
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+    {{- with $jmx.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  namespaceSelector:
+    matchNames: [{{ .Release.Namespace | quote }}]
+  selector:
+    matchLabels:
+      {{- include "geoserver.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: jmx-metrics
+  endpoints:
+    - port: jmx-metrics
+      path: /metrics
+      interval: {{ $jmx.serviceMonitor.interval }}
+      scrapeTimeout: {{ $jmx.serviceMonitor.scrapeTimeout }}
+{{- end }}

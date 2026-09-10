@@ -1,0 +1,19 @@
+{{- $jmx := .Values.jvmMetrics | default dict -}}
+{{- if $jmx.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "geoserver.fullname" . }}-jmx
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+    app.kubernetes.io/component: jmx-metrics
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "geoserver.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: jmx-metrics
+      port: {{ $jmx.port }}
+      targetPort: jmx-metrics
+      protocol: TCP
+{{- end }}

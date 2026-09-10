@@ -1,0 +1,605 @@
+{
+  "uid": "geoserver-heap-hpa",
+  "title": "GeoServer JVM heap autoscaling (example)",
+  "schemaVersion": 39,
+  "version": 2,
+  "editable": true,
+  "tags": [
+    "geoserver",
+    "heap",
+    "hpa",
+    "example"
+  ],
+  "timezone": "browser",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "refresh": "15s",
+  "description": "Example dashboard: adapt datasource, workload filters and thresholds to your installation. Important panels show heap usage, HPA inputs and replicas; optional panels show memory bytes and scrape health. Heap validation assumes 15-second scrapes. Dashboard variables do not configure Adapter or HPA.",
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {
+          "text": "Prometheus",
+          "value": "prometheus"
+        }
+      },
+      {
+        "name": "namespace",
+        "type": "textbox",
+        "query": "geoserver",
+        "current": {
+          "text": "geoserver",
+          "value": "geoserver"
+        }
+      },
+      {
+        "name": "cluster_regex",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      },
+      {
+        "name": "pod_regex",
+        "type": "textbox",
+        "query": "geoserver-[0-9]+",
+        "current": {
+          "text": "geoserver-[0-9]+",
+          "value": "geoserver-[0-9]+"
+        }
+      },
+      {
+        "name": "rps_job",
+        "type": "textbox",
+        "query": "geoserver",
+        "current": {
+          "text": "geoserver",
+          "value": "geoserver"
+        }
+      },
+      {
+        "name": "heap_job",
+        "type": "textbox",
+        "query": "geoserver-jmx",
+        "current": {
+          "text": "geoserver-jmx",
+          "value": "geoserver-jmx"
+        }
+      },
+      {
+        "name": "activation",
+        "type": "textbox",
+        "query": "50",
+        "current": {
+          "text": "50",
+          "value": "50"
+        }
+      },
+      {
+        "name": "high_target",
+        "type": "textbox",
+        "query": "80",
+        "current": {
+          "text": "80",
+          "value": "80"
+        }
+      },
+      {
+        "name": "statefulset",
+        "label": "StatefulSet",
+        "type": "textbox",
+        "query": "geoserver",
+        "current": {
+          "text": "geoserver",
+          "value": "geoserver"
+        },
+        "description": "GeoServer StatefulSet for replica queries; requires kube-state-metrics."
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "text",
+      "title": "Example dashboard",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Use this example as a starting point. Match the datasource, workload filters and thresholds to Adapter/HPA. Dashboard edits do not configure autoscaling.\n\n**Important:** heap usage, HPA inputs and replicas. **Nice to have / check:** heap bytes and scrape health."
+      }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "1. Important",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Heap used — raw and smoothed",
+      "description": "Shows raw heap used/max and the validated 2-minute average for each JVM; this includes garbage awaiting collection.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}",
+          "legendFormat": "{{pod}} raw",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "(max by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    ))) and on (pod) (count by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    )) == 1)",
+          "legendFormat": "{{pod}} smoothed",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "C",
+          "expr": "vector($high_target)",
+          "legendFormat": "nominal high target",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Heap pressure used by HPA",
+      "description": "Shows validated heap pressure above the activation baseline, in percentage points, against the HPA target of high_target minus activation.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "clamp_min(((max by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    ))) and on (pod) (count by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    )) == 1)) - $activation, 0)",
+          "legendFormat": "{{pod}} pressure",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "vector($high_target - $activation)",
+          "legendFormat": "HPA pressure target",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Completed request rate per pod",
+      "description": "Shows completed RPS per healthy pod supplied to HPA by Adapter, including monitored probes.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (pod) (rate(requests_total_seconds_count{namespace=~\"${namespace:regex}\",job=~\"${rps_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[2m]) and on (cluster,namespace,pod,job,instance) (up{namespace=~\"${namespace:regex}\",job=~\"${rps_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1))",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Total completed request rate",
+      "description": "Sums completed RPS across healthy pod scrapes to show total monitored traffic.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(sum by (pod) (rate(requests_total_seconds_count{namespace=~\"${namespace:regex}\",job=~\"${rps_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[2m]) and on (cluster,namespace,pod,job,instance) (up{namespace=~\"${namespace:regex}\",job=~\"${rps_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1)))",
+          "legendFormat": "total RPS",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 6
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "max by (cluster, namespace, statefulset) (kube_statefulset_replicas{namespace=~\"${namespace:regex}\",statefulset=~\"${statefulset:regex}\",cluster=~\"${cluster_regex:raw}\"})",
+          "legendFormat": "{{cluster}} {{namespace}} / {{statefulset}} — desired",
+          "refId": "A",
+          "range": true,
+          "interval": "30s"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "max by (cluster, namespace, statefulset) (kube_statefulset_status_replicas_ready{namespace=~\"${namespace:regex}\",statefulset=~\"${statefulset:regex}\",cluster=~\"${cluster_regex:raw}\"})",
+          "legendFormat": "{{cluster}} {{namespace}} / {{statefulset}} — Ready",
+          "refId": "B",
+          "range": true,
+          "interval": "30s"
+        }
+      ],
+      "title": "Ready / desired replicas",
+      "type": "timeseries",
+      "description": "Compares pods ready to serve with the StatefulSet replica count requested by HPA or fixed replicaCount."
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "2. Nice to have / check",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Heap bytes in each JVM",
+      "description": "Shows used and maximum heap bytes from each JVM; maximum is the percentage denominator.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}",
+          "legendFormat": "{{pod}} used",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}",
+          "legendFormat": "{{pod}} max",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Scrape health and valid heap count",
+      "description": "Shows scrape success (1) or failure (0) and valid heap coverage; coverage is not the Kubernetes Ready replica count.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}",
+          "legendFormat": "{{pod}} heap up",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "up{namespace=~\"${namespace:regex}\",job=~\"${rps_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}",
+          "legendFormat": "{{pod}} RPS up",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        },
+        {
+          "refId": "C",
+          "expr": "count((max by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    ))) and on (pod) (count by (pod) ((\n      (100 * avg_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) / java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} > 0)\n      and (min_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 0)\n      and (max_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) <= java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (count_over_time(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) >= 3)\n      and (changes(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"}[120s]) == 0)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_used{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and ((time() - timestamp(java_lang_Memory_HeapMemoryUsage_max{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45)\n      and on (cluster,namespace,pod,job,instance) ((up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"} == 1) and ((time() - timestamp(up{namespace=~\"${namespace:regex}\",job=~\"${heap_job:regex}\",pod=~\"${pod_regex:raw}\",cluster=~\"${cluster_regex:raw}\"})) < 45))\n    )) == 1))",
+          "legendFormat": "pods with valid heap",
+          "range": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          }
+        }
+      ]
+    }
+  ]
+}

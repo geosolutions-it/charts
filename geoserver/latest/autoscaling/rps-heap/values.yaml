@@ -1,0 +1,71 @@
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: geoserver_requests_total_per_second
+        target:
+          type: AverageValue
+          # RPS per pod: "1" = 1 RPS; "500m" = 0.5 RPS
+          averageValue: "1"
+    - type: Pods
+      pods:
+        metric:
+          name: geoserver_heap_pressure_percent
+        target:
+          type: AverageValue
+          # Pressure = max(smoothed used/max percent - 50, 0).
+          # 30 pressure points corresponds to an 80% heap target.
+          averageValue: "30"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    # Use default GeoServer release namespace if empty
+    targetNamespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      # ServiceMonitor selector of Prometheus
+      release: kube-prometheus-stack
+    basicAuth:
+      enabled: true
+      # Keep existing Secret ownership and credentials
+      # For an external Secret, set createSecret: false
+
+geoserver:
+  # Preserve additional monitor properties when merging this block.
+  monitor_properties: |
+    storage=memory
+    mode=history
+    sync=async
+    micrometer.enabled=true
+    micrometer.metric.reset_count=2147483647
+    micrometer.metric.remote_host.enabled=false
+
+jvmMetrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    interval: 15s
+    scrapeTimeout: 5s
+    labels:
+      release: kube-prometheus-stack

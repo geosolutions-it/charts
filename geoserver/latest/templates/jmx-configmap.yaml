@@ -1,0 +1,12 @@
+{{- $jmx := .Values.jvmMetrics | default dict -}}
+{{- if $jmx.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "geoserver.fullname" . }}-jmx-config
+  labels:
+    {{- include "geoserver.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+{{ $jmx.config | indent 4 }}
+{{- end }}
