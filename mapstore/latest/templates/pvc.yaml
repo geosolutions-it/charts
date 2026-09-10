@@ -1,12 +1,17 @@
+{{- if .Values.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "mapstore.fullname" . }}
+  labels:
+    {{- include "mapstore.labels" . | nindent 4 }}
 spec:
   accessModes:
-    - {{ .Values.persistence.accessModes }}
+    - {{ .Values.persistence.accessMode }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
   resources:
     requests:
-      storage: {{ .Values.persistence.requests.storage | quote }}
-  storageClassName: {{ .Values.persistence.storageClassName }}
-
+      storage: {{ .Values.persistence.size }}
+{{- end }}

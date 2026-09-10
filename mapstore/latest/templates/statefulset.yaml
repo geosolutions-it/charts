@@ -45,8 +45,12 @@ spec:
               readOnly: true
       volumes:
         - name: datadir
+          {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "mapstore.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         - name: ovr-properties
           secret:
             secretName: {{ include "mapstore.fullname" . }}-ovr
