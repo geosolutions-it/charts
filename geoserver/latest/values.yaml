@@ -76,13 +76,15 @@ autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 100
+  # Canonical request metric shared with the corrected Adapter.
+  # 500m is a demonstration target; calibrate before enabling production HPA.
   # Set `metrics` to use custom metrics from prometheus-adapter.
   # If empty, the chart falls back to CPU / memory resource metrics below.
   metrics:
     - type: Pods
       pods:
         metric:
-          name: geoserver_requests_per_second
+          name: geoserver_requests_total_per_second
         target:
           type: AverageValue
           averageValue: "500m"

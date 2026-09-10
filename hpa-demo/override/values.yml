@@ -41,7 +41,7 @@ service:
   port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -61,11 +61,11 @@ ingress:
   #      - chart-example.local
 
 resources:
-  limits:
-    cpu: 1000m
-    memory: 1500Mi
   requests:
-    cpu: 500m
+    cpu: 250m
+    memory: 1Gi
+  limits:
+    cpu: "2"
     memory: 1500Mi
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -79,42 +79,30 @@ resources:
   #   memory: 128Mi
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
-  maxReplicas: 3
-  # Set `metrics` to use custom metrics from prometheus-adapter.
-  # If empty, the chart falls back to CPU / memory resource metrics below.
+  maxReplicas: 2
   metrics:
     - type: Pods
       pods:
         metric:
-          name: geoserver_requests_per_second
+          name: geoserver_requests_total_per_second
         target:
           type: AverageValue
-          averageValue: "500m"
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 85
+          averageValue: 500m
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 0
       policies:
-        - type: Percent
-          value: 100
-          periodSeconds: 60
+        - type: Pods
+          value: 1
+          periodSeconds: 30
     scaleDown:
-      stabilizationWindowSeconds: 120
+      stabilizationWindowSeconds: 60
       policies:
-        - type: Percent
-          value: 70
-          periodSeconds: 60
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage is ignored when autoscaling.metrics is set.
-  # Add memory directly to autoscaling.metrics for dual-signal HPA behavior.
-  # targetMemoryUtilizationPercentage: 80
+        - type: Pods
+          value: 1
+          periodSeconds: 30
 
 monitoring:
   serviceMonitor:
@@ -266,8 +254,7 @@ geoserver:
     # /geoserver/rest/monitor/requests/metrics
     micrometer.enabled=true
 
-    # Reset the in-memory Micrometer registry after this many tracked requests.
-    micrometer.metric.reset_count=100
+    micrometer.metric.reset_count=2147483647
 
     # Leave remote host metrics off by default to avoid high-cardinality labels.
     micrometer.metric.remote_host.enabled=false
