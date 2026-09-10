@@ -46,5 +46,17 @@ tests:
           path: spec.template.spec.containers[0].ports
           content:
             name: http
-            containerPort: 80
+            containerPort: 8080
+            protocol: TCP
+
+  - it: should use service targetPort as container port
+    template: statefulset.yaml
+    set:
+      service.targetPort: 9090
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: http
+            containerPort: 9090
             protocol: TCP
