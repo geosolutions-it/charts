@@ -1,6 +1,6 @@
 # GeoServer Autoscaling based on requests per second
 
-This folder contains additional values to enable autoscaling on an existing GeoServer Helm release.
+This folder contains values to enable autoscaling on an existing GeoServer Helm release.
 
 Run the commands from this folder. The examples use:
 
@@ -37,11 +37,11 @@ kubectl get prometheus,pods -n monitoring
 
 ## 2. Configure GeoServer monitoring
 
-Edit the [autoscaling configuration](./geoserver-rps-values.yaml) and [adapter values](./prometheus-adapter-values.yaml) directly. Adjust the release/namespace, Prometheus URL, ServiceMonitor namespace/labels, authentication, and Adapter metric as needed.
+Edit the [autoscaling configuration](./values.yaml) and [adapter values](./prometheus-adapter-values.yaml) directly. Adjust the release/namespace, Prometheus URL, ServiceMonitor namespace/labels, authentication, and Adapter metric as needed.
 
 ```bash
-helm upgrade geoserver .. -n geoserver --reuse-values \
-  -f geoserver-rps-values.yaml --wait --timeout 5m
+helm upgrade geoserver ../.. -n geoserver --reuse-values \
+  -f values.yaml --wait --timeout 5m
 ```
 
 This applies monitor settings and creates the ServiceMonitor. Confirm Prometheus reports `up == 1` and `requests_total_seconds_count` for each pod. The metrics endpoint is `/geoserver/rest/monitor/requests/metrics`.
@@ -67,8 +67,8 @@ Continue when the API returns one value per serving pod.
 ## 4. Enable autoscaling
 
 ```bash
-helm upgrade geoserver .. -n geoserver --reuse-values \
-  -f geoserver-rps-values.yaml --set autoscaling.enabled=true --wait --timeout 5m
+helm upgrade geoserver ../.. -n geoserver --reuse-values \
+  -f values.yaml --set autoscaling.enabled=true --wait --timeout 5m
 kubectl get hpa -n geoserver
 ```
 
@@ -77,9 +77,56 @@ kubectl get hpa -n geoserver
 Disable autoscaling and choose a fixed replica count (`2` below is an example):
 
 ```bash
-helm upgrade geoserver .. -n geoserver --reuse-values \
+helm upgrade geoserver ../.. -n geoserver --reuse-values \
   --set autoscaling.enabled=false --set replicaCount=2 --wait --timeout 5m
 kubectl get hpa,statefulset -n geoserver
 ```
 
 Helm removes the HPA and sets the chosen replica count. Run step 4 again to re-enable autoscaling.
+
+## 6. Grafana queries
+
+
+An example dashboard, [grafana-dashboard.json](./grafana-dashboard.json), is available for reference.
+
+
+**Total RPS:** shows the combined completed-request rate across all selected GeoServer pods.
+
+```promql
+sum by (cluster, namespace) (
+  rate(requests_total_seconds_count{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""}[2m])
+)
+```
+
+**RPS per pod:** shows how traffic is distributed across pods. Use legend `{{pod}}`.
+
+```promql
+sum by (cluster, namespace, pod) (
+  rate(requests_total_seconds_count{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""}[2m])
+)
+```
+
+**HPA input per pod:** shows the rate supplied to HPA by Adapter, using a fixed `[2m]` window and healthy scrapes. Compare with step 3; `500m` means `0.5` RPS.
+
+```promql
+sum by (cluster, namespace, pod) (
+  rate(requests_total_seconds_count{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""}[2m])
+  and on (cluster, namespace, pod, job, instance)
+  (up{namespace="geoserver",job="geoserver",pod=~"geoserver-[0-9]+",cluster=""} == 1)
+)
+```
+
+**Ready / desired replicas:** compares pods ready to serve with the requested replica count. Use both queries in one panel, legends `Ready` / `Desired`, unit **short**. Requires kube-state-metrics.
+
+```promql
+max by (cluster, namespace, statefulset) (
+  kube_statefulset_status_replicas_ready{namespace="geoserver",statefulset="geoserver",cluster=""}
+)
+```
+
+```promql
+max by (cluster, namespace, statefulset) (
+  kube_statefulset_replicas{namespace="geoserver",statefulset="geoserver",cluster=""}
+)
+```
+

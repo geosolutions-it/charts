@@ -29,18 +29,20 @@ monitoring:
   serviceMonitor:
     enabled: true
     namespace: monitoring
-    #  Use default GeoServer release namespace if empty
+    # Use default GeoServer release namespace if empty
     targetNamespace: ""
     interval: 30s
     scrapeTimeout: 10s
     labels:
-      #  ServiceMonitor selector of Prometheus
+      # ServiceMonitor selector of Prometheus
       release: kube-prometheus-stack
     basicAuth:
       enabled: true
-      # Set to false if using external secret
+      # Keep existing Secret ownership and credentials
+      # For an external Secret, set createSecret: false
 
 geoserver:
+  # Preserve additional monitor properties when merging this block.
   monitor_properties: |
     storage=memory
     mode=history
@@ -48,3 +50,7 @@ geoserver:
     micrometer.enabled=true
     micrometer.metric.reset_count=2147483647
     micrometer.metric.remote_host.enabled=false
+
+# Explicitly remove the exporter when using rps-heap
+jvmMetrics:
+  enabled: false
