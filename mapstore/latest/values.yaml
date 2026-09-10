@@ -38,14 +38,10 @@ ingress:
   tlsEnabled: false
 
 persistence:
-  accessModes: ReadWriteOnce
-  requests:
-    storage: 5Gi
-  storageClassName: manual
-  volumeMode: Filesystem
-  persistentVolumeReclaimPolicy: Retain
-  hostPath:
-    path: /mapstore-datadir
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 5Gi
 
 env:
   JAVA_OPTS: "-Xms512m -Xmx512m -Ddatadir.location=/datadir -Dgeostore-ovr=file:///config/geostore-datasource-ovr.properties"
