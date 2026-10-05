@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ]
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "targetPort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "nodePort": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "description": "Use 0 for automatic allocation; explicit ports must also fall within the cluster-configured NodePort range."
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "$ref": "#/definitions/quantity"
+            },
+            "memory": {
+              "$ref": "#/definitions/quantity"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "$ref": "#/definitions/quantity"
+            },
+            "memory": {
+              "$ref": "#/definitions/quantity"
+            }
+          }
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "accessModes",
+        "requests",
+        "storageClassName",
+        "volumeMode",
+        "persistentVolumeReclaimPolicy",
+        "hostPath"
+      ],
+      "properties": {
+        "accessModes": {
+          "type": "string",
+          "enum": [
+            "ReadWriteOnce",
+            "ReadOnlyMany",
+            "ReadWriteMany",
+            "ReadWriteOncePod"
+          ]
+        },
+        "requests": {
+          "type": "object",
+          "required": [
+            "storage"
+          ],
+          "properties": {
+            "storage": {
+              "$ref": "#/definitions/positiveQuantity"
+            }
+          }
+        },
+        "storageClassName": {
+          "type": "string"
+        },
+        "volumeMode": {
+          "type": "string",
+          "enum": [
+            "Filesystem"
+          ],
+          "description": "The chart mounts the volume as a filesystem at /datadir."
+        },
+        "persistentVolumeReclaimPolicy": {
+          "type": "string",
+          "enum": [
+            "Retain",
+            "Delete",
+            "Recycle"
+          ]
+        },
+        "hostPath": {
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            }
+          }
+        }
+      }
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "minAvailable": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "enabled",
+        "minAvailable"
+      ]
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "backendServicePort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    }
+  },
+  "definitions": {
+    "quantity": {
+      "description": "Non-negative Kubernetes resource quantity, as a number or a string with an optional SI, binary SI, or exponent suffix.",
+      "anyOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\+?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([numkMGTPE]|[KMGTPE]i|[eE][+-]?[0-9]+)?$"
+        }
+      ]
+    },
+    "positiveQuantity": {
+      "description": "A Kubernetes storage quantity greater than zero.",
+      "allOf": [
+        {
+          "$ref": "#/definitions/quantity"
+        },
+        {
+          "not": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 0
+              },
+              {
+                "type": "string",
+                "pattern": "^\\+?0*(\\.0*)?([numkMGTPE]|[KMGTPE]i|[eE][+-]?[0-9]+)?$"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
