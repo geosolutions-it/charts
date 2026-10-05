@@ -90,7 +90,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: geosolutions-it/gitops-dev
-        token: ${{ secrets.GITOPS_DEV_TOKEN }}
+        ssh-key: ${{ secrets.GITOPS_DEPLOY_KEY }}
         path: gitops-dev
 
     - name: Deploy to Dev (GitOps)
