@@ -44,12 +44,10 @@ helm repo update
 helm search repo charts/geoserver --versions
 helm search repo charts/mapstore --versions
 
-# Example: use GeoServer chart version 3.0.2
-helm install geoserver charts/geoserver --version 3.0.2
-helm upgrade geoserver charts/geoserver --version 3.0.2
+# To use GeoServer app version 3.0.2, select the CHART VERSION from its row
+helm install geoserver charts/geoserver --version <chart-version>
+helm upgrade geoserver charts/geoserver --version <chart-version>
 ```
-
-The `--version 3.0.2` examples require the chart published at [https://charts.geosolutionsgroup.com/charts](https://charts.geosolutionsgroup.com/charts), added above as `charts`. Helm cannot select that repository version when installing from the local `./geoserver/latest` source directory.
 
 ### Installing Charts
 
@@ -98,9 +96,6 @@ helm search repo charts/mapstore --versions
 helm upgrade geoserver charts/geoserver --version <chart-version> -f my-values.yaml
 helm upgrade mapstore charts/mapstore --version <chart-version> -f my-values.yaml
 
-# Example: upgrade to GeoServer chart version 3.0.2
-helm upgrade geoserver charts/geoserver --version 3.0.2
-
 # View upgrade history
 helm history geoserver
 
@@ -137,6 +132,7 @@ Starting with GeoServer 3.0.x, the container runs as UID/GID `20000:20000`. When
 
 - Back up the GeoServer PVCs and database before changing file ownership.
 - In [the ownership Job](geoserver/latest/pvc-ownership-20000-job.yaml), verify the PVC claim names. For enabled `gwccache` or `wps` PVCs, uncomment the matching mount and claim.
+- Choose a `CHART VERSION` whose `APP VERSION` is GeoServer 3.x in `helm search repo charts/geoserver --versions`.
 - Stop the old pod, run the Job to change PVC ownership to `20000:20000`, then delete the completed Job before upgrading.
 
   ```sh
@@ -145,5 +141,5 @@ Starting with GeoServer 3.0.x, the container runs as UID/GID `20000:20000`. When
   kubectl apply -n default -f geoserver/latest/pvc-ownership-20000-job.yaml
   kubectl wait -n default --for=condition=complete job/geoserver-pvc-ownership-20000 --timeout=30m
   kubectl delete -n default job/geoserver-pvc-ownership-20000 --cascade=foreground --wait=true
-  helm upgrade geoserver charts/geoserver --version 3.0.2 -n default --wait --timeout 3m
+  helm upgrade geoserver charts/geoserver --version <chart-version> -n default --wait --timeout 3m
   ```
