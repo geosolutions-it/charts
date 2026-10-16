@@ -64,6 +64,8 @@ spec:
           volumeMounts:
             - name: gs-datadir
               mountPath: /var/geoserver/datadir
+            - name: gs-data
+              mountPath: /var/geoserver/data
             {{- if .Values.persistence.gwccache }}
             - name: gs-gwccache
               mountPath: /var/geoserver/gwc_cache_dir
@@ -82,7 +84,11 @@ spec:
             {{- end }}
             - name: gs-tomcatlogs
               mountPath: /usr/local/tomcat/logs
-          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 1000:1000 /var/geoserver{{ end }}']
+            {{- if .Values.persistence.wps }}
+            - name: gs-wps
+              mountPath: /var/geoserver/wps_exec
+            {{- end }}
+          command: ['sh', '-c', 'mkdir -p $(GEOSERVER_AUDIT_PATH)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_LOG_LOCATION)/$(POD_HOSTNAME) && mkdir -p $(GEOSERVER_HEAP_DUMP_DIR)/$(POD_HOSTNAME){{ if .Values.geoserver.chown_datadir }} && chown -R 20000:20000 /var/geoserver /usr/local/tomcat/logs{{ end }}']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
