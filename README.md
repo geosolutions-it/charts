@@ -43,33 +43,36 @@ helm repo update
 # List available GeoServer and MapStore chart versions
 helm search repo charts/geoserver --versions
 helm search repo charts/mapstore --versions
+
+# Example: use GeoServer chart version 3.0.2
+helm install geoserver charts/geoserver --version 3.0.2
+helm upgrade geoserver charts/geoserver --version 3.0.2
 ```
+
+The `--version 3.0.2` examples require the chart published at [https://charts.geosolutionsgroup.com/charts](https://charts.geosolutionsgroup.com/charts), added above as `charts`. Helm cannot select that repository version when installing from the local `./geoserver/latest` source directory.
 
 ### Installing Charts
 
 #### GeoServer
 
 ```bash
-# Install a specific chart version with default values
-helm install geoserver charts/geoserver --version <chart-version>
+# Install with default values
+helm install geoserver charts/geoserver
 
-# Install the same chart version with custom values
-helm install geoserver charts/geoserver --version <chart-version> \
+# Install with custom values
+helm install geoserver charts/geoserver \
   --set admin_password=MySecurePassword \
   --set persistence.datadir.size=10Gi
-
-# Example: install GeoServer chart version 3.0.2
-helm install geoserver charts/geoserver --version 3.0.2
 ```
 
 #### MapStore
 
 ```bash
-# Install a specific chart version with default values
-helm install mapstore charts/mapstore --version <chart-version>
+# Install with default values
+helm install mapstore charts/mapstore
 
-# Install the same chart version with custom values
-helm install mapstore charts/mapstore --version <chart-version> \
+# Install with custom values
+helm install mapstore charts/mapstore \
   --set ingress.host=mapstore.example.com \
   --set persistence.size=10Gi
 ```
@@ -138,7 +141,9 @@ Starting with GeoServer 3.0.x, the container runs as UID/GID `20000:20000`. When
 
   ```sh
   kubectl scale statefulset/geoserver -n default --replicas=0
+  kubectl wait -n default --for=delete pod/geoserver-0 --timeout=180s
   kubectl apply -n default -f geoserver/latest/pvc-ownership-20000-job.yaml
+  kubectl wait -n default --for=condition=complete job/geoserver-pvc-ownership-20000 --timeout=30m
   kubectl delete -n default job/geoserver-pvc-ownership-20000 --cascade=foreground --wait=true
-  helm upgrade geoserver ./geoserver/latest -n default --wait --timeout 3m
+  helm upgrade geoserver charts/geoserver --version 3.0.2 -n default --wait --timeout 3m
   ```
