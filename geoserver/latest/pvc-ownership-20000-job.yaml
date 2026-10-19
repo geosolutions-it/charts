@@ -1,0 +1,64 @@
+# Run only after stopping the old GeoServer pod and backing up its PVCs.
+# Replace claimName values if the Helm release uses another name.
+# If gwccache or wps persistence is enabled, uncomment its volumeMount and PVC volume.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: geoserver-pvc-ownership-20000
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: chown
+          image: busybox:1.36
+          command:
+            - sh
+            - -ec
+            - chown -R 20000:20000 /pvc
+          volumeMounts:
+            - name: datadir
+              mountPath: /pvc/datadir
+            - name: data
+              mountPath: /pvc/data
+            - name: memdumps
+              mountPath: /pvc/memdumps
+            - name: audits
+              mountPath: /pvc/audits
+            - name: logs
+              mountPath: /pvc/logs
+            - name: tomcatlogs
+              mountPath: /pvc/tomcatlogs
+            # - name: gwccache
+            #   mountPath: /pvc/gwccache
+            # - name: wps
+            #   mountPath: /pvc/wps
+      volumes:
+        - name: datadir
+          persistentVolumeClaim:
+            claimName: geoserver-datadir
+        - name: data
+          persistentVolumeClaim:
+            claimName: geoserver-data
+        - name: memdumps
+          persistentVolumeClaim:
+            claimName: geoserver-memdumps
+        - name: audits
+          persistentVolumeClaim:
+            claimName: geoserver-audits
+        - name: logs
+          persistentVolumeClaim:
+            claimName: geoserver-logs
+        - name: tomcatlogs
+          persistentVolumeClaim:
+            claimName: geoserver-tomcatlogs
+        # - name: gwccache
+        #   persistentVolumeClaim:
+        #     claimName: geoserver-gwccache
+        # - name: wps
+        #   persistentVolumeClaim:
+        #     claimName: geoserver-wps

@@ -17,7 +17,8 @@ initContainer:
     pullPolicy: IfNotPresent
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1000
+    runAsUser: 20000
+    runAsGroup: 20000
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -34,7 +35,7 @@ serviceAccount:
 podAnnotations: {}
 
 podSecurityContext:
-  fsGroup: 1000
+  fsGroup: 20000
 
 securityContext:
   # capabilities:
@@ -42,7 +43,8 @@ securityContext:
   #   - ALL
   # readOnlyRootFilesystem: true
   runAsNonRoot: true
-  runAsUser: 1000
+  runAsUser: 20000
+  runAsGroup: 20000
 
 service:
   type: ClusterIP
@@ -68,17 +70,13 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 5Gi
 
 autoscaling:
   enabled: false
@@ -86,6 +84,10 @@ autoscaling:
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
 
 nodeSelector: {}
 
@@ -110,6 +112,12 @@ persistence:
     accessModes: ReadWriteOnce
     size: 1Gi
     storageClass: ""
+  # Optional GWC cache directory
+  # Uncomment to enable. Mounted at `/var/geoserver/gwc_cache_dir`.
+  # gwccache:
+  #   accessModes: ReadWriteOnce
+  #   size: 1Gi
+  #   storageClass: ""
   data:
     accessModes: ReadWriteOnce
     size: 1Gi
@@ -147,6 +155,11 @@ postgis:
   env:
     database: geoserver
     user: geoserver
+
+tomcat:
+  httpConnector:
+    maxHttpHeaderSize: ""
+
 geoserver:
   chown_datadir: false
 
@@ -161,7 +174,8 @@ geoserver:
   geoserver_audit_path: "/var/geoserver/audits"
   geoserver_heap_dump_dir: "/var/geoserver/memory_dumps"
   geoserver_data_dir: "/var/geoserver/datadir"
-  geoserver_cache_data_dir: "$(GEOSERVER_DATA_DIR)/gwc_cache_dir"
+  # Empty value uses a chart default based on persistence.gwccache.
+  geoserver_cache_data_dir: ""
   geoserver_cache_config_dir: "$(GEOSERVER_DATA_DIR)/gwc"
   geoserver_netcdf_data_dir: "/var/geoserver/netcdf_data_dir"
   geoserver_grib_cache_dir: "/var/geoserver/grib_cache_dir"
