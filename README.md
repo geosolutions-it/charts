@@ -40,8 +40,13 @@ helm repo add charts https://charts.geosolutionsgroup.com/charts
 # Update your local chart repository cache
 helm repo update
 
-# Search for available charts
-helm search repo charts
+# List available GeoServer and MapStore chart versions
+helm search repo charts/geoserver --versions
+helm search repo charts/mapstore --versions
+
+# To use GeoServer app version 3.0.2, select the CHART VERSION from its row
+helm install geoserver charts/geoserver --version <chart-version>
+helm upgrade geoserver charts/geoserver --version <chart-version>
 ```
 
 ### Installing Charts
@@ -62,10 +67,10 @@ helm install geoserver charts/geoserver \
 
 ```bash
 # Install with default values
-helm install mapstore geosolutions/mapstore
+helm install mapstore charts/mapstore
 
 # Install with custom values
-helm install mapstore geosolutions/mapstore \
+helm install mapstore charts/mapstore \
   --set ingress.host=mapstore.example.com \
   --set persistence.size=10Gi
 ```
@@ -83,11 +88,13 @@ Each chart has its own `values.yaml` file with configurable parameters. See indi
 # Update repository cache
 helm repo update
 
-# Upgrade to latest version
-helm upgrade geoserver geosolutions/geoserver
+# List available chart versions
+helm search repo charts/geoserver --versions
+helm search repo charts/mapstore --versions
 
-# Upgrade with custom values
-helm upgrade geoserver geosolutions/geoserver -f my-values.yaml
+# Upgrade to a specific chart version
+helm upgrade geoserver charts/geoserver --version <chart-version> -f my-values.yaml
+helm upgrade mapstore charts/mapstore --version <chart-version> -f my-values.yaml
 
 # View upgrade history
 helm history geoserver
@@ -118,3 +125,21 @@ When changes are merged to main, the [release.yaml](.github/workflows/release.ya
 1. Packages charts using `helm package`
 2. Publishes to S3 bucket registry (geosolutions-charts)
 3. Triggers GitOps deployment updates
+
+## Migrating GeoServer from 2.27.x or 2.28.x to 3.0.x
+
+Starting with GeoServer 3.0.x, the container runs as UID/GID `20000:20000`. When upgrading from 2.27.x or 2.28.x, migrate the ownership of existing GeoServer PVC contents so the new container can read and write them.
+
+- Back up the GeoServer PVCs and database before changing file ownership.
+- In [the ownership Job](geoserver/latest/pvc-ownership-20000-job.yaml), verify the PVC claim names. For enabled `gwccache` or `wps` PVCs, uncomment the matching mount and claim.
+- Choose a `CHART VERSION` whose `APP VERSION` is GeoServer 3.x in `helm search repo charts/geoserver --versions`.
+- Stop the old pod, run the Job to change PVC ownership to `20000:20000`, then delete the completed Job before upgrading.
+
+  ```sh
+  kubectl scale statefulset/geoserver -n default --replicas=0
+  kubectl wait -n default --for=delete pod/geoserver-0 --timeout=180s
+  kubectl apply -n default -f geoserver/latest/pvc-ownership-20000-job.yaml
+  kubectl wait -n default --for=condition=complete job/geoserver-pvc-ownership-20000 --timeout=30m
+  kubectl delete -n default job/geoserver-pvc-ownership-20000 --cascade=foreground --wait=true
+  helm upgrade geoserver charts/geoserver --version <chart-version> -n default --wait --timeout 3m
+  ```
