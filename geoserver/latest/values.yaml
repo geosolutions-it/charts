@@ -19,6 +19,13 @@ initContainer:
     runAsNonRoot: true
     runAsUser: 20000
     runAsGroup: 20000
+
+logsPruning:
+  image:
+    repository: busybox
+    tag: "1.37"
+    pullPolicy: IfNotPresent
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

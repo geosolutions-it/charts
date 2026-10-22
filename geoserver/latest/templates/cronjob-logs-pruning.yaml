@@ -19,8 +19,8 @@ spec:
 
           containers:
           - name: prune
-            image: busybox:1.37
-            imagePullPolicy: IfNotPresent
+            image: "{{ .Values.logsPruning.image.repository }}:{{ .Values.logsPruning.image.tag }}"
+            imagePullPolicy: {{ .Values.logsPruning.image.pullPolicy }}
 
             command:
             - /bin/sh
