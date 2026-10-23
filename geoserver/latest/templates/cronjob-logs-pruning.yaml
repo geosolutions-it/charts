@@ -1,3 +1,5 @@
+{{- $logsPruning := .Values.logsPruning | default dict }}
+{{- $pruningImage := $logsPruning.image | default dict }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -19,8 +21,8 @@ spec:
 
           containers:
           - name: prune
-            image: "{{ .Values.logsPruning.image.repository }}:{{ .Values.logsPruning.image.tag }}"
-            imagePullPolicy: {{ .Values.logsPruning.image.pullPolicy }}
+            image: "{{ $pruningImage.repository | default "busybox" }}:{{ $pruningImage.tag | default "1.37" }}"
+            imagePullPolicy: {{ $pruningImage.pullPolicy | default "IfNotPresent" }}
 
             command:
             - /bin/sh
